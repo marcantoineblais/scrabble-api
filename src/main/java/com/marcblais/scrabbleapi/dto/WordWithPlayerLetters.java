@@ -13,10 +13,10 @@ public class WordWithPlayerLetters {
 
     public WordWithPlayerLetters(List<Word> words, String playerLetters) {
         this.words = words;
-        this.playerLetters = new Word(playerLetters);
+        this.playerLetters = new Word(playerLetters.toUpperCase());
     }
 
-    public List<Word> getWordsWithPlayerLetters() {
+    public List<Word> getWords() {
         return words.stream().filter(word -> {
             if (word.getWord().length() > playerLetters.getWord().length())
                 return false;
@@ -29,9 +29,10 @@ public class WordWithPlayerLetters {
         Map<String, Integer> wordLetters = word.getLetters();
 
         for (String key : wordLetters.keySet()) {
-            if (playerLetters.get(key) == null)
+            if (!playerLetters.containsKey(key))
                 return false;
-            if (playerLetters.get(key) < wordLetters.get(key))
+
+            if (wordLetters.get(key) > playerLetters.get(key))
                 return false;
         }
 
