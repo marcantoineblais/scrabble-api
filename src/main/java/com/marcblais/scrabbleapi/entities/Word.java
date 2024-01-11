@@ -21,6 +21,10 @@ public class Word {
     public Word() {
     }
 
+    public Word(String word) {
+        this.word = word;
+    }
+
     public Word(long id, String word) {
         this.id = id;
         this.word = word;
