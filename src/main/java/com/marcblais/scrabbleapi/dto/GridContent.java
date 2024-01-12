@@ -48,4 +48,8 @@ public class GridContent {
     public void setVertical(boolean vertical) {
         isVertical = vertical;
     }
+
+    public boolean isEmpty() {
+        return content.isEmpty();
+    }
 }

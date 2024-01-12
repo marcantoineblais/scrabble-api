@@ -2,6 +2,7 @@ package com.marcblais.scrabbleapi.dto;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 public class SolutionsFinder {
@@ -35,7 +36,9 @@ public class SolutionsFinder {
                 // find every solutions that fit over the content on the grid
                 List<GridContent> contentToTest =
                         gridContents.stream().filter(c -> c.getContent().equals(content)).toList();
-                solutions.addAll(findSolutionsForEntry(contentToTest, entry, indexes));
+
+                List<Solution> solutionsForEntry = findSolutionsForEntry(contentToTest, entry, indexes);
+                solutions.addAll(solutionsForEntry);
             }
         }
 
@@ -81,7 +84,8 @@ public class SolutionsFinder {
 
         if (content.isVertical())
             if (isVerticalFit(content, entry, positionInContent)) {
-                List<Solution> adjacentSolutions = findHorizontalAdjacentSolutions(content, entry, positionInContent);
+                List<AdjacentSolution> adjacentSolutions =
+                        findHorizontalAdjacentSolutions(content, entry, positionInContent);
 
                 if (adjacentSolutions != null) {
                     solution = new Solution(
@@ -97,7 +101,8 @@ public class SolutionsFinder {
             }
         else
             if (isHorizontalFit(content, entry, positionInContent)) {
-                List<Solution> adjacentSolutions = findVerticalAdjacentSolutions(content, entry, positionInContent);
+                List<AdjacentSolution> adjacentSolutions =
+                        findVerticalAdjacentSolutions(content, entry, positionInContent);
 
                 if (adjacentSolutions != null) {
                     solution = new Solution(
@@ -153,10 +158,10 @@ public class SolutionsFinder {
         return true;
     }
 
-    private List<Solution> findHorizontalAdjacentSolutions(
+    private List<AdjacentSolution> findHorizontalAdjacentSolutions(
             GridContent content, DictionaryEntry entry, int positionInContent
     ) {
-        List<Solution> adjacentSolutions = new ArrayList<>();
+        List<AdjacentSolution> adjacentSolutions = new ArrayList<>();
         int firstLetterY = content.getY() - positionInContent;
         int x = content.getX();
 
@@ -181,15 +186,15 @@ public class SolutionsFinder {
                     }).findFirst().orElse(null);
 
                     if (adjacentEntry != null) {
-                        Solution adjacentSolution = new Solution(
+                        AdjacentSolution adjacentSolution = new AdjacentSolution(
                                 entry,
+                                Stream.of(adjacentContentLeft, adjacentContentRight).filter(c -> !c.isEmpty()).toList(),
                                 x - adjacentContentLeft.getContent().length(),
                                 y,
                                 false,
-                                0,
-                                null,
-                                null
+                                0
                         );
+
                         adjacentSolutions.add(adjacentSolution);
                     } else {
                         return null;
@@ -201,10 +206,10 @@ public class SolutionsFinder {
         return adjacentSolutions;
     }
 
-    private List<Solution> findVerticalAdjacentSolutions(
+    private List<AdjacentSolution> findVerticalAdjacentSolutions(
             GridContent content, DictionaryEntry entry, int positionInContent
     ) {
-        List<Solution> adjacentSolutions = new ArrayList<>();
+        List<AdjacentSolution> adjacentSolutions = new ArrayList<>();
         int firstLetterX = content.getX() - positionInContent;
         int y = content.getY();
 
@@ -229,14 +234,13 @@ public class SolutionsFinder {
                     }).findFirst().orElse(null);
 
                     if (adjacentEntry != null) {
-                        Solution adjacentSolution = new Solution(
+                        AdjacentSolution adjacentSolution = new AdjacentSolution(
                                 entry,
+                                Stream.of(adjacentContentAbove, adjacentContentBelow).filter(c -> !c.isEmpty()).toList(),
                                 x,
                                 y - adjacentContentAbove.getContent().length(),
-                                false,
-                                0,
-                                null,
-                                null
+                                true,
+                                0
                         );
                         adjacentSolutions.add(adjacentSolution);
                     } else {

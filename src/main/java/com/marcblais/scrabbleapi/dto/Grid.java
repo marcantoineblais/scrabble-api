@@ -18,7 +18,7 @@ public class Grid {
 
     public Grid(String[][] grid, String playerLetters, Language language, int[][] doubleLetter, int[][] tripleLetter, int[][] doubleWord, int[][] tripleWord) {
         this.grid = grid;
-        this.playerLetters = playerLetters;
+        this.playerLetters = playerLetters.toUpperCase();
         this.language = language;
         this.doubleLetter = doubleLetter;
         this.tripleLetter = tripleLetter;
@@ -39,7 +39,7 @@ public class Grid {
     }
 
     public void setPlayerLetters(String playerLetters) {
-        this.playerLetters = playerLetters;
+        this.playerLetters = playerLetters.toUpperCase();
     }
 
     public Language getLanguage() {
