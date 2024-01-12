@@ -80,32 +80,42 @@ public class SolutionsFinder {
         Solution solution = null;
 
         if (content.isVertical())
-            if (testForVerticalContent(content, entry, positionInContent))
-                solution = new Solution(
-                        entry,
-                        content.getX(),
-                        content.getY() - positionInContent,
-                        content.isVertical(),
-                        0,
-                        null,
-                        content
-                );
+            if (isVerticalFit(content, entry, positionInContent)) {
+                List<Solution> adjacentSolutions = findHorizontalAdjacentSolutions(content, entry, positionInContent);
+
+                if (adjacentSolutions != null) {
+                    solution = new Solution(
+                            entry,
+                            content.getX(),
+                            content.getY() - positionInContent,
+                            content.isVertical(),
+                            0,
+                            adjacentSolutions,
+                            content
+                    );
+                }
+            }
         else
-            if (testForHorizontalContent(content, entry, positionInContent))
-                solution = new Solution(
-                        entry,
-                        content.getX() - positionInContent,
-                        content.getY(),
-                        content.isVertical(),
-                        0,
-                        null,
-                        content
-                );
+            if (isHorizontalFit(content, entry, positionInContent)) {
+                List<Solution> adjacentSolutions = findVerticalAdjacentSolutions(content, entry, positionInContent);
+
+                if (adjacentSolutions != null) {
+                    solution = new Solution(
+                            entry,
+                            content.getX() - positionInContent,
+                            content.getY(),
+                            content.isVertical(),
+                            0,
+                            null,
+                            content
+                    );
+                }
+            }
 
         return solution;
     }
 
-    private boolean testForVerticalContent(GridContent content, DictionaryEntry entry, int positionInContent) {
+    private boolean isVerticalFit(GridContent content, DictionaryEntry entry, int positionInContent) {
         int firstLetterY = content.getY() - positionInContent;
         int lastLetterY = firstLetterY + entry.getWord().length();
 
@@ -124,7 +134,7 @@ public class SolutionsFinder {
         return true;
     }
 
-    private boolean testForHorizontalContent(GridContent content, DictionaryEntry entry, int positionInContent) {
+    private boolean isHorizontalFit(GridContent content, DictionaryEntry entry, int positionInContent) {
         int firstLetterX = content.getX() - positionInContent;
         int lastLetterX = content.getX() - positionInContent + entry.getWord().length();
 
@@ -141,5 +151,101 @@ public class SolutionsFinder {
             return false;
 
         return true;
+    }
+
+    private List<Solution> findHorizontalAdjacentSolutions(
+            GridContent content, DictionaryEntry entry, int positionInContent
+    ) {
+        List<Solution> adjacentSolutions = new ArrayList<>();
+        int firstLetterY = content.getY() - positionInContent;
+        int x = content.getX();
+
+        for (int i = 0; i < entry.getWord().length(); i++) {
+            int y = i + firstLetterY;
+
+            if (grid.getGrid()[y][x].isEmpty()) {
+                GridContent adjacentContentLeft = gridContents.stream().filter(c -> {
+                    return c.getY() == y && c.getX() + c.getContent().length() == x;
+                }).findFirst().orElse(new GridContent());
+
+                GridContent adjacentContentRight = gridContents.stream().filter(c -> {
+                    return c.getY() == y && c.getX() == x + 1;
+                }).findFirst().orElse(new GridContent());
+
+                String contentToTest = adjacentContentLeft.getContent() +
+                        entry.getWord().charAt(i) + adjacentContentRight.getContent();
+
+                if (contentToTest.length() > 1) {
+                    DictionaryEntry adjacentEntry = entries.stream().filter(e -> {
+                        return e.getWord().equals(contentToTest);
+                    }).findFirst().orElse(null);
+
+                    if (adjacentEntry != null) {
+                        Solution adjacentSolution = new Solution(
+                                entry,
+                                x - adjacentContentLeft.getContent().length(),
+                                y,
+                                false,
+                                0,
+                                null,
+                                null
+                        );
+                        adjacentSolutions.add(adjacentSolution);
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        return adjacentSolutions;
+    }
+
+    private List<Solution> findVerticalAdjacentSolutions(
+            GridContent content, DictionaryEntry entry, int positionInContent
+    ) {
+        List<Solution> adjacentSolutions = new ArrayList<>();
+        int firstLetterX = content.getX() - positionInContent;
+        int y = content.getY();
+
+        for (int i = 0; i < entry.getWord().length(); i++) {
+            int x = i + firstLetterX;
+
+            if (grid.getGrid()[y][x].isEmpty()) {
+                GridContent adjacentContentAbove = gridContents.stream().filter(c -> {
+                    return c.getX() == x && c.getY() + c.getContent().length() == y;
+                }).findFirst().orElse(new GridContent());
+
+                GridContent adjacentContentBelow = gridContents.stream().filter(c -> {
+                    return c.getX() == x && c.getY() == y + 1;
+                }).findFirst().orElse(new GridContent());
+
+                String contentToTest = adjacentContentAbove.getContent() +
+                        entry.getWord().charAt(i) + adjacentContentBelow.getContent();
+
+                if (contentToTest.length() > 1) {
+                    DictionaryEntry adjacentEntry = entries.stream().filter(e -> {
+                        return e.getWord().equals(contentToTest);
+                    }).findFirst().orElse(null);
+
+                    if (adjacentEntry != null) {
+                        Solution adjacentSolution = new Solution(
+                                entry,
+                                x,
+                                y - adjacentContentAbove.getContent().length(),
+                                false,
+                                0,
+                                null,
+                                null
+                        );
+                        adjacentSolutions.add(adjacentSolution);
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        return adjacentSolutions;
     }
 }
