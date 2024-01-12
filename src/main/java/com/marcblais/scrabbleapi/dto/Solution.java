@@ -2,6 +2,7 @@ package com.marcblais.scrabbleapi.dto;
 
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -11,19 +12,19 @@ public class Solution implements Comparable<Solution> {
     private int y;
     private boolean vertical;
     private int points;
-    private Map<Integer, DictionaryEntry> adjacentWords;
+    private List<Solution> adjacentSolutions;
     private GridContent gridContent;
 
     public Solution() {
     }
 
-    public Solution(DictionaryEntry dictionaryEntry, int x, int y, boolean vertical, int points, Map<Integer, DictionaryEntry> adjacentWords, GridContent gridContent) {
+    public Solution(DictionaryEntry dictionaryEntry, int x, int y, boolean vertical, int points, List<Solution> adjacentSolutions, GridContent gridContent) {
         this.dictionaryEntry = dictionaryEntry;
         this.x = x;
         this.y = y;
         this.vertical = vertical;
         this.points = points;
-        this.adjacentWords = adjacentWords;
+        this.adjacentSolutions = adjacentSolutions;
         this.gridContent = gridContent;
     }
 
@@ -67,12 +68,20 @@ public class Solution implements Comparable<Solution> {
         this.points = points;
     }
 
-    public Map<Integer, DictionaryEntry> getAdjacentWords() {
-        return adjacentWords;
+    public DictionaryEntry getDictionaryEntry() {
+        return dictionaryEntry;
     }
 
-    public void setAdjacentWords(Map<Integer, DictionaryEntry> adjacentWords) {
-        this.adjacentWords = adjacentWords;
+    public void setDictionaryEntry(DictionaryEntry dictionaryEntry) {
+        this.dictionaryEntry = dictionaryEntry;
+    }
+
+    public List<Solution> getAdjacentSolutions() {
+        return adjacentSolutions;
+    }
+
+    public void setAdjacentSolutions(List<Solution> adjacentSolutions) {
+        this.adjacentSolutions = adjacentSolutions;
     }
 
     public GridContent getGridContent() {

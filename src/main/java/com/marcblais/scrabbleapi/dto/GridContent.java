@@ -7,6 +7,7 @@ public class GridContent {
     private boolean isVertical;
 
     public GridContent() {
+        this.content = "";
     }
 
     public GridContent(String content, int x, int y, boolean isVertical) {
