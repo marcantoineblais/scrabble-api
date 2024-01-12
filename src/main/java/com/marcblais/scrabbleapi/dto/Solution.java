@@ -12,13 +12,13 @@ public class Solution implements Comparable<Solution> {
     private int y;
     private boolean vertical;
     private int points;
-    private List<Solution> adjacentSolutions;
+    private List<AdjacentSolution> adjacentSolutions;
     private GridContent gridContent;
 
     public Solution() {
     }
 
-    public Solution(DictionaryEntry dictionaryEntry, int x, int y, boolean vertical, int points, List<Solution> adjacentSolutions, GridContent gridContent) {
+    public Solution(DictionaryEntry dictionaryEntry, int x, int y, boolean vertical, int points, List<AdjacentSolution> adjacentSolutions, GridContent gridContent) {
         this.dictionaryEntry = dictionaryEntry;
         this.x = x;
         this.y = y;
@@ -28,11 +28,11 @@ public class Solution implements Comparable<Solution> {
         this.gridContent = gridContent;
     }
 
-    public DictionaryEntry getDictionary() {
+    public DictionaryEntry getDictionaryEntry() {
         return dictionaryEntry;
     }
 
-    public void setDictionary(DictionaryEntry dictionaryEntry) {
+    public void setDictionaryEntry(DictionaryEntry dictionaryEntry) {
         this.dictionaryEntry = dictionaryEntry;
     }
 
@@ -68,19 +68,11 @@ public class Solution implements Comparable<Solution> {
         this.points = points;
     }
 
-    public DictionaryEntry getDictionaryEntry() {
-        return dictionaryEntry;
-    }
-
-    public void setDictionaryEntry(DictionaryEntry dictionaryEntry) {
-        this.dictionaryEntry = dictionaryEntry;
-    }
-
-    public List<Solution> getAdjacentSolutions() {
+    public List<AdjacentSolution> getAdjacentSolutions() {
         return adjacentSolutions;
     }
 
-    public void setAdjacentSolutions(List<Solution> adjacentSolutions) {
+    public void setAdjacentSolutions(List<AdjacentSolution> adjacentSolutions) {
         this.adjacentSolutions = adjacentSolutions;
     }
 
@@ -95,7 +87,7 @@ public class Solution implements Comparable<Solution> {
     @Override
     public int compareTo(Solution o) {
         if (points == o.getPoints())
-            return dictionaryEntry.getWord().compareTo(o.getDictionary().getWord());
+            return dictionaryEntry.getWord().compareTo(o.getDictionaryEntry().getWord());
         else
             return Integer.compare(o.getPoints(), points);
     }
@@ -110,5 +102,18 @@ public class Solution implements Comparable<Solution> {
     @Override
     public int hashCode() {
         return Objects.hash(dictionaryEntry, x, y, vertical);
+    }
+
+    @Override
+    public String toString() {
+        return "Solution{" +
+                "dictionaryEntry=" + dictionaryEntry +
+                ", x=" + x +
+                ", y=" + y +
+                ", vertical=" + vertical +
+                ", points=" + points +
+                ", adjacentSolutions=" + adjacentSolutions +
+                ", gridContent=" + gridContent +
+                '}';
     }
 }
