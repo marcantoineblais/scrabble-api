@@ -1,9 +1,6 @@
 package com.marcblais.scrabbleapi.controllers;
 
-import com.marcblais.scrabbleapi.dto.Grid;
-import com.marcblais.scrabbleapi.dto.GridContent;
-import com.marcblais.scrabbleapi.dto.DictionnaryEntriesFinder;
-import com.marcblais.scrabbleapi.dto.PlayerLetters;
+import com.marcblais.scrabbleapi.dto.*;
 import com.marcblais.scrabbleapi.entities.Language;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 import com.marcblais.scrabbleapi.services.WordService;
@@ -36,15 +33,17 @@ public class WordController {
     }
 
     @PostMapping("/grid")
-    public List<DictionaryEntry> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
+    @CrossOrigin(origins = "http://localhost:3000")
+    public List<Solution> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
         long startTime = System.currentTimeMillis();
-        Language language = wordService.findLanguageById(1);
-        List<DictionaryEntry> dictionaries = wordService.findWordsByLanguage(language);
+        List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
+        SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
+        List<Solution> solutions = solutionsFinder.toSolutions();
 
         long endTime = System.currentTimeMillis() - startTime;
         System.out.println("\nRequest took " + endTime + "ms\n");
 
-        return null;
+        return solutions;
     }
 }
