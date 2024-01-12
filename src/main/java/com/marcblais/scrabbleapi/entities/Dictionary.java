@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Entity
-public class Word {
+public class Dictionary {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,14 +18,14 @@ public class Word {
     @ManyToOne
     private Language language;
 
-    public Word() {
+    public Dictionary() {
     }
 
-    public Word(String word) {
+    public Dictionary(String word) {
         this.word = word;
     }
 
-    public Word(long id, String word) {
+    public Dictionary(long id, String word) {
         this.id = id;
         this.word = word;
     }

@@ -1,70 +1,61 @@
 package com.marcblais.scrabbleapi.dto;
 
-import com.marcblais.scrabbleapi.entities.Word;
-import com.marcblais.scrabbleapi.services.WordService;
-
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class SolutionFinder {
-//    private WordService wordService;
-//    private Grid grid;
-//    private Map<String, List<Word>> possibleWords;
-//    private Map<String, List<Word>> adjacentWords;
-//    private List<GridContent> gridContent;
-//    private List<Word> validAdjacentWords;
-//    private Set<String> invalidAdjacentWords;
-//
-//    public SolutionFinder() {
-//    }
-//
-//    public SolutionFinder(WordService wordService, Grid grid, Map<String, List<Word>> possibleWords, List<GridContent> gridContent) {
-//        this.wordService = wordService;
-//        this.grid = grid;
-//        this.possibleWords = possibleWords;
-//        this.adjacentWords = new HashMap<>();
-//        this.gridContent = gridContent;
-//        this.validAdjacentWords = new ArrayList<>();
-//        this.invalidAdjacentWords = new HashSet<>();
-//    }
-//
-//    public List<Solution> findSolutions() {
-//        List<Solution> solutions = new ArrayList<>();
-//
-//        for (String key : possibleWords.keySet()) {
-//            // Find every words and letter on the grid that have the same string as every key of possible words
-//            List<GridContent> possiblePlacements = gridContent.stream().filter(c -> c.getContent().equals(key)).toList();
-//
-//            // Grab all the GridContent that match the key
-//            List<Word> words = possibleWords.get(key);
-//
-//            for (Word word : words) {
-//                // Find where the grid content can overlap over the word
-//                List<Integer> indexes = findIndexesOfSubstring(key, word);
-//
-//                // find every solutions that fit over the content on the grid
+import com.marcblais.scrabbleapi.entities.Dictionary;
+public class SolutionsFinder {
+    private Grid grid;
+    private List<Dictionary> dictionaries;
+    private List<GridContent> gridContents;
+
+    public SolutionsFinder() {
+    }
+
+    public SolutionsFinder(Grid grid, List<Dictionary> dictionaries, List<GridContent> gridContents) {
+        this.grid = grid;
+        this.dictionaries = dictionaries;
+        this.gridContents = gridContents;
+    }
+
+    public List<Solution> toSolutions() {
+        List<Solution> solutions = new ArrayList<>();
+        Set<String> uniqueContentOnGrid = gridContents.stream().map(GridContent::getContent).collect(Collectors.toSet());
+
+        for (String content : uniqueContentOnGrid) {
+            WordWithLetters wordWithLetters =
+                    new WordWithLetters(dictionaries, content + grid.getPlayerLetters());
+
+            List<Dictionary> dictionariesForContent = wordWithLetters.getWords();
+
+            for (Dictionary dictionary : dictionariesForContent) {
+                // Find where the grid content can overlap over the word
+                List<Integer> indexes = findIndexesOfSubstring(content, dictionary);
+
+                // find every solutions that fit over the content on the grid
 //                solutions.addAll(findSolutionForWord(possiblePlacements, word, indexes));
-//            }
-//        }
-//
-//        return solutions;
-//    }
-//
-//    private List<Integer> findIndexesOfSubstring(String key, Word word) {
-//        List<Integer> indexes = new ArrayList<>();
-//        int index = 0;
-//
-//        // Find the last index of the grid content in the word
-//        int lastIndex = word.getWord().lastIndexOf(key);
-//
-//        // Find every indexes of the grid content in the word and add them to the list
-//        while (index <= lastIndex) {
-//            index = word.getWord().indexOf(key, index);
-//            indexes.add(index);
-//            index ++;
-//        }
-//
-//        return indexes;
-//    }
+            }
+        }
+
+        return solutions;
+    }
+
+    private List<Integer> findIndexesOfSubstring(String key, Dictionary dictionary) {
+        List<Integer> indexes = new ArrayList<>();
+        int index = 0;
+
+        // Find the last index of the grid content in the word
+        int lastIndex = dictionary.getWord().lastIndexOf(key);
+
+        // Find every indexes of the grid content in the word and add them to the list
+        while (index <= lastIndex) {
+            index = dictionary.getWord().indexOf(key, index);
+            indexes.add(index);
+            index ++;
+        }
+
+        return indexes;
+    }
 //
 //    private List<Solution> findSolutionForWord(List<GridContent> possiblePlacements, Word word, List<Integer> indexes) {
 //        List<Solution> solutions = new ArrayList<>();
