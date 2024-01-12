@@ -7,6 +7,7 @@ import com.marcblais.scrabbleapi.services.WordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -20,12 +21,12 @@ public class WordController {
     }
 
     @GetMapping("/letters")
-    public List<DictionaryEntry> findWordsWithLetters(@RequestParam(name = "letters") String letters) {
+    public List<DictionaryEntry> findWordsWithLetters(@RequestParam(name = "letters") String playerLetters) {
         long startTime = System.currentTimeMillis();
         Language language = wordService.findLanguageById(1);
         List<DictionaryEntry> entries = wordService.findWordsByLanguage(language);
-        PlayerLetters playerLetters = new PlayerLetters(letters);
-        DictionnaryEntriesFinder dictionnaryEntriesFinder = new DictionnaryEntriesFinder(entries, playerLetters);
+        DictionnaryEntriesFinder dictionnaryEntriesFinder =
+                new DictionnaryEntriesFinder(entries, playerLetters.toUpperCase());
 
         long endTime = System.currentTimeMillis() - startTime;
         System.out.println("\nRequest took " + endTime + "ms\n");
@@ -38,6 +39,7 @@ public class WordController {
         long startTime = System.currentTimeMillis();
         List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
+
         SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
         List<Solution> solutions = solutionsFinder.toSolutions();
 

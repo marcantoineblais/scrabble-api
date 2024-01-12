@@ -42,16 +42,16 @@ public class SolutionsFinder {
         return solutions;
     }
 
-    private List<Integer> findIndexesOfSubstring(String key, DictionaryEntry entry) {
+    private List<Integer> findIndexesOfSubstring(String content, DictionaryEntry entry) {
         List<Integer> indexes = new ArrayList<>();
         int index = 0;
 
         // Find the last index of the grid content in the word
-        int lastIndex = entry.getWord().lastIndexOf(key);
+        int lastIndex = entry.getWord().lastIndexOf(content);
 
         // Find every indexes of the grid content in the word and add them to the list
         while (index <= lastIndex) {
-            index = entry.getWord().indexOf(key, index);
+            index = entry.getWord().indexOf(content, index);
             indexes.add(index);
             index ++;
         }
@@ -107,12 +107,12 @@ public class SolutionsFinder {
 
     private boolean testForVerticalContent(GridContent content, DictionaryEntry entry, int positionInContent) {
         int firstLetterY = content.getY() - positionInContent;
-        int lastLetterY = content.getY() - positionInContent + entry.getWord().length();
+        int lastLetterY = firstLetterY + entry.getWord().length();
 
         if (firstLetterY < 0)
             return false;
 
-        if (lastLetterY < grid.getGrid().length - 1)
+        if (lastLetterY > grid.getGrid().length - 1)
             return false;
 
         if (firstLetterY > 0 && !grid.getGrid()[firstLetterY - 1][content.getX()].isBlank())
