@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Grid {
     private String[][] grid;
-    private String playerLetters;
+    private PlayerLetters playerLetters;
     private Language language;
     private int[][] doubleLetter;
     private int[][] tripleLetter;
@@ -16,7 +16,7 @@ public class Grid {
     public Grid() {
     }
 
-    public Grid(String[][] grid, String playerLetters, Language language, int[][] doubleLetter, int[][] tripleLetter, int[][] doubleWord, int[][] tripleWord) {
+    public Grid(String[][] grid, PlayerLetters playerLetters, Language language, int[][] doubleLetter, int[][] tripleLetter, int[][] doubleWord, int[][] tripleWord) {
         this.grid = grid;
         this.playerLetters = playerLetters;
         this.language = language;
@@ -34,11 +34,11 @@ public class Grid {
         this.grid = grid;
     }
 
-    public String getPlayerLetters() {
+    public PlayerLetters getPlayerLetters() {
         return playerLetters;
     }
 
-    public void setPlayerLetters(String playerLetters) {
+    public void setPlayerLetters(PlayerLetters playerLetters) {
         this.playerLetters = playerLetters;
     }
 

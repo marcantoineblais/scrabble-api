@@ -2,9 +2,10 @@ package com.marcblais.scrabbleapi.controllers;
 
 import com.marcblais.scrabbleapi.dto.Grid;
 import com.marcblais.scrabbleapi.dto.GridContent;
-import com.marcblais.scrabbleapi.dto.WordWithLetters;
+import com.marcblais.scrabbleapi.dto.DictionnaryEntriesFinder;
+import com.marcblais.scrabbleapi.dto.PlayerLetters;
 import com.marcblais.scrabbleapi.entities.Language;
-import com.marcblais.scrabbleapi.entities.Dictionary;
+import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 import com.marcblais.scrabbleapi.services.WordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -22,25 +23,28 @@ public class WordController {
     }
 
     @GetMapping("/letters")
-    public List<Dictionary> findWordsWithLetters(@RequestParam(name = "letters") String playerLetters) {
+    public List<DictionaryEntry> findWordsWithLetters(@RequestParam(name = "letters") String letters) {
         long startTime = System.currentTimeMillis();
         Language language = wordService.findLanguageById(1);
-        List<Dictionary> dictionaries = wordService.findWordsByLanguage(language);
-        WordWithLetters wordWithLetters = new WordWithLetters(dictionaries, playerLetters);
+        List<DictionaryEntry> entries = wordService.findWordsByLanguage(language);
+        PlayerLetters playerLetters = new PlayerLetters(letters);
+        DictionnaryEntriesFinder dictionnaryEntriesFinder = new DictionnaryEntriesFinder(entries, playerLetters);
 
         long endTime = System.currentTimeMillis() - startTime;
         System.out.println("\nRequest took " + endTime + "ms\n");
-        return wordWithLetters.getWords();
+        return dictionnaryEntriesFinder.getEntries();
     }
 
     @PostMapping("/grid")
-    public List<Dictionary> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
+    public List<DictionaryEntry> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
         long startTime = System.currentTimeMillis();
         Language language = wordService.findLanguageById(1);
-        List<Dictionary> dictionaries = wordService.findWordsByLanguage(language);
+        List<DictionaryEntry> dictionaries = wordService.findWordsByLanguage(language);
         List<GridContent> gridContents = grid.toGridContent();
 
         long endTime = System.currentTimeMillis() - startTime;
         System.out.println("\nRequest took " + endTime + "ms\n");
+
+        return null;
     }
 }

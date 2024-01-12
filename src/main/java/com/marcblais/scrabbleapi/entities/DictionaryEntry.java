@@ -1,12 +1,13 @@
 package com.marcblais.scrabbleapi.entities;
 
+import com.marcblais.scrabbleapi.dto.LettersCounter;
 import jakarta.persistence.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Entity
-public class Dictionary {
+public class DictionaryEntry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,14 +19,14 @@ public class Dictionary {
     @ManyToOne
     private Language language;
 
-    public Dictionary() {
+    public DictionaryEntry() {
     }
 
-    public Dictionary(String word) {
+    public DictionaryEntry(String word) {
         this.word = word;
     }
 
-    public Dictionary(long id, String word) {
+    public DictionaryEntry(long id, String word) {
         this.id = id;
         this.word = word;
     }
@@ -55,19 +56,7 @@ public class Dictionary {
     }
 
     public Map<String, Integer> getLetters() {
-        Map<String, Integer> lettersMap = new HashMap<>();
-        String[] letters = word.split("");
-
-        for (String letter : letters) {
-            if (lettersMap.containsKey(letter)) {
-                int count = lettersMap.get(letter);
-                lettersMap.put(letter, count + 1);
-            } else {
-                lettersMap.put(letter, 1);
-            }
-        }
-
-        return lettersMap;
+        return LettersCounter.getLettersCountMap(word);
     }
 
     @Override
