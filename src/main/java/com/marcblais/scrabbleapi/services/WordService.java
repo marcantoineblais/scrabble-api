@@ -2,7 +2,7 @@ package com.marcblais.scrabbleapi.services;
 
 import com.marcblais.scrabbleapi.entities.Language;
 import com.marcblais.scrabbleapi.entities.LettersValue;
-import com.marcblais.scrabbleapi.entities.Word;
+import com.marcblais.scrabbleapi.entities.Dictionary;
 import com.marcblais.scrabbleapi.repositories.LanguageRepo;
 import com.marcblais.scrabbleapi.repositories.PointsRepo;
 import com.marcblais.scrabbleapi.repositories.WordRepo;
@@ -25,11 +25,11 @@ public class WordService {
         this.pointsRepo = pointsRepo;
     }
 
-    public void saveWord(Word word) {
-        wordRepo.save(word);
+    public void saveWord(Dictionary dictionary) {
+        wordRepo.save(dictionary);
     }
 
-    public List<Word> findWordsByLanguage(Language language) {
+    public List<Dictionary> findWordsByLanguage(Language language) {
         return wordRepo.findByLanguage(language);
     }
 
