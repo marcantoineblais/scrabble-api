@@ -1,24 +1,24 @@
 package com.marcblais.scrabbleapi.dto;
 
-import com.marcblais.scrabbleapi.entities.Dictionary;
+import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 
 import java.util.Map;
 import java.util.Objects;
 
 public class Solution implements Comparable<Solution> {
-    private Dictionary dictionary;
+    private DictionaryEntry dictionaryEntry;
     private int x;
     private int y;
     private boolean vertical;
     private int points;
-    private Map<Integer, Dictionary> adjacentWords;
+    private Map<Integer, DictionaryEntry> adjacentWords;
     private GridContent gridContent;
 
     public Solution() {
     }
 
-    public Solution(Dictionary dictionary, int x, int y, boolean vertical, int points, Map<Integer, Dictionary> adjacentWords, GridContent gridContent) {
-        this.dictionary = dictionary;
+    public Solution(DictionaryEntry dictionaryEntry, int x, int y, boolean vertical, int points, Map<Integer, DictionaryEntry> adjacentWords, GridContent gridContent) {
+        this.dictionaryEntry = dictionaryEntry;
         this.x = x;
         this.y = y;
         this.vertical = vertical;
@@ -27,12 +27,12 @@ public class Solution implements Comparable<Solution> {
         this.gridContent = gridContent;
     }
 
-    public Dictionary getDictionary() {
-        return dictionary;
+    public DictionaryEntry getDictionary() {
+        return dictionaryEntry;
     }
 
-    public void setDictionary(Dictionary dictionary) {
-        this.dictionary = dictionary;
+    public void setDictionary(DictionaryEntry dictionaryEntry) {
+        this.dictionaryEntry = dictionaryEntry;
     }
 
     public int getX() {
@@ -67,11 +67,11 @@ public class Solution implements Comparable<Solution> {
         this.points = points;
     }
 
-    public Map<Integer, Dictionary> getAdjacentWords() {
+    public Map<Integer, DictionaryEntry> getAdjacentWords() {
         return adjacentWords;
     }
 
-    public void setAdjacentWords(Map<Integer, Dictionary> adjacentWords) {
+    public void setAdjacentWords(Map<Integer, DictionaryEntry> adjacentWords) {
         this.adjacentWords = adjacentWords;
     }
 
@@ -86,7 +86,7 @@ public class Solution implements Comparable<Solution> {
     @Override
     public int compareTo(Solution o) {
         if (points == o.getPoints())
-            return dictionary.getWord().compareTo(o.getDictionary().getWord());
+            return dictionaryEntry.getWord().compareTo(o.getDictionary().getWord());
         else
             return Integer.compare(o.getPoints(), points);
     }
@@ -95,11 +95,11 @@ public class Solution implements Comparable<Solution> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Solution solution)) return false;
-        return x == solution.x && y == solution.y && vertical == solution.vertical && Objects.equals(dictionary, solution.dictionary);
+        return x == solution.x && y == solution.y && vertical == solution.vertical && Objects.equals(dictionaryEntry, solution.dictionaryEntry);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(dictionary, x, y, vertical);
+        return Objects.hash(dictionaryEntry, x, y, vertical);
     }
 }
