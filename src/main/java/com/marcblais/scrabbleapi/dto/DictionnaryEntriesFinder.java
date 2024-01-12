@@ -7,16 +7,16 @@ import java.util.Map;
 
 public class DictionnaryEntriesFinder {
     private List<DictionaryEntry> entries;
-    private PlayerLetters playerLetters;
+    private String playerLetters;
     private String gridContent;
 
-    public DictionnaryEntriesFinder(List<DictionaryEntry> entries, PlayerLetters playerLetters) {
+    public DictionnaryEntriesFinder(List<DictionaryEntry> entries, String playerLetters) {
         this.entries = entries;
         this.playerLetters = playerLetters;
         this.gridContent = "";
     }
 
-    public DictionnaryEntriesFinder(List<DictionaryEntry> entries, PlayerLetters playerLetters, String gridContent) {
+    public DictionnaryEntriesFinder(List<DictionaryEntry> entries, String playerLetters, String gridContent) {
         this.entries = entries;
         this.playerLetters = playerLetters;
         this.gridContent = gridContent;
@@ -24,27 +24,24 @@ public class DictionnaryEntriesFinder {
 
     public List<DictionaryEntry> getEntries() {
         return entries.stream().filter(entry -> {
-            if (entry.getWord().length() < gridContent.length())
+            if (entry.getWord().length() < gridContent.length() + 1)
                 return false;
 
-            if (entry.getWord().length() > playerLetters.getLetters().length())
+            if (entry.getWord().length() > (gridContent + playerLetters).length())
                 return false;
 
-            if (entry.getWord().equals(gridContent))
-                return false;
-
-            return isWordMadeFromLetters(entry, playerLetters.getLettersMap());
+            return isWordMadeFromLetters(entry, LettersCounter.getLettersCountMap(gridContent + playerLetters));
         }).toList();
     }
 
-    private boolean isWordMadeFromLetters(DictionaryEntry dictionaryEntry, Map<String, Integer> playerLetters) {
-        Map<String, Integer> wordLetters = dictionaryEntry.getLetters();
+    private boolean isWordMadeFromLetters(DictionaryEntry entry, Map<String, Integer> playerLetters) {
+        Map<String, Integer> entryLetters = entry.getLetters();
 
-        for (String key : wordLetters.keySet()) {
+        for (String key : entryLetters.keySet()) {
             if (!playerLetters.containsKey(key))
                 return false;
 
-            if (wordLetters.get(key) > playerLetters.get(key))
+            if (entryLetters.get(key) > playerLetters.get(key))
                 return false;
         }
 

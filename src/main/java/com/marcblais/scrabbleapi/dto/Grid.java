@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Grid {
     private String[][] grid;
-    private PlayerLetters playerLetters;
+    private String playerLetters;
     private Language language;
     private int[][] doubleLetter;
     private int[][] tripleLetter;
@@ -16,7 +16,7 @@ public class Grid {
     public Grid() {
     }
 
-    public Grid(String[][] grid, PlayerLetters playerLetters, Language language, int[][] doubleLetter, int[][] tripleLetter, int[][] doubleWord, int[][] tripleWord) {
+    public Grid(String[][] grid, String playerLetters, Language language, int[][] doubleLetter, int[][] tripleLetter, int[][] doubleWord, int[][] tripleWord) {
         this.grid = grid;
         this.playerLetters = playerLetters;
         this.language = language;
@@ -34,11 +34,11 @@ public class Grid {
         this.grid = grid;
     }
 
-    public PlayerLetters getPlayerLetters() {
+    public String getPlayerLetters() {
         return playerLetters;
     }
 
-    public void setPlayerLetters(PlayerLetters playerLetters) {
+    public void setPlayerLetters(String playerLetters) {
         this.playerLetters = playerLetters;
     }
 
@@ -131,5 +131,44 @@ public class Grid {
         }
 
         return gridContent.toString();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder gridStr = new StringBuilder();
+        StringBuilder doubleLetterStr = new StringBuilder();
+        StringBuilder tripleLetterStr = new StringBuilder();
+        StringBuilder doubleWordStr = new StringBuilder();
+        StringBuilder tripleWordStr = new StringBuilder();
+
+        for (String[] str : grid) {
+            gridStr.append(Arrays.toString(str));
+        }
+
+        for (int[] str : doubleLetter) {
+            doubleLetterStr.append(Arrays.toString(str));
+        }
+
+        for (int[] str : tripleLetter) {
+            tripleLetterStr.append(Arrays.toString(str));
+        }
+
+        for (int[] str : doubleWord) {
+            doubleWordStr.append(Arrays.toString(str));
+        }
+
+        for (int[] str : tripleWord) {
+            tripleWordStr.append(Arrays.toString(str));
+        }
+
+        return "Grid{" +
+                "grid=" + gridStr +
+                ", playerLetters=" + playerLetters +
+                ", language=" + language +
+                ", doubleLetter=" + doubleLetterStr +
+                ", tripleLetter=" + tripleLetterStr +
+                ", doubleWord=" + doubleWordStr +
+                ", tripleWord=" + tripleWordStr +
+                '}';
     }
 }
