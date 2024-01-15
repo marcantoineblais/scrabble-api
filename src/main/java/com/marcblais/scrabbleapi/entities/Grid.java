@@ -77,55 +77,38 @@ public class Grid {
     }
 
     public List<GridContent> toGridContent() {
-        List<GridContent> gridContent = new ArrayList<>();
+        List<GridContent> gridContents = new ArrayList<>();
         String[][] grid = getGrid();
 
         for (int y = 0; y < grid.length; y++) {
-            String[] row = grid[y];
-            String horizontal;
-            String vertical;
+            StringBuilder content = new StringBuilder();
 
-            for (int x = 0; x < row.length; x++) {
-                String col = row[x];
-
-                if (!col.isEmpty()) {
-                    horizontal = evaluateRow(grid, x, y);
-                    vertical = evaluateCol(grid, x, y);
-
-                    if (!horizontal.isBlank())
-                        gridContent.add(new GridContent(horizontal, x, y,false));
-                    if (!vertical.isBlank())
-                        gridContent.add(new GridContent(vertical, x, y,true));
+            for (int x = 0; x < grid[y].length; x++) {
+                if (grid[y][x].isEmpty()) {
+                    content.append(" ");
+                } else {
+                    content.append(grid[y][x]);
                 }
             }
+
+            gridContents.add(new GridContent(content.toString(), y, false));
         }
 
-        return gridContent;
-    }
+        for (int x = 0; x < grid[0].length; x++) {
+            StringBuilder content = new StringBuilder();
 
-    private String evaluateRow(String[][] grid, int x, int y) {
-        String[] row = grid[y];
-        StringBuilder gridContent = new StringBuilder();
-
-        if (x == 0 || row[x - 1].isBlank()) {
-            while (x < row.length && !row[x].isEmpty()) {
-                gridContent.append(row[x++]);
+            for (int y = 0; y < grid.length; y++) {
+                if (grid[y][x].isEmpty()) {
+                    content.append(" ");
+                } else {
+                    content.append(grid[y][x]);
+                }
             }
+
+            gridContents.add(new GridContent(content.toString(), x, true));
         }
 
-        return gridContent.toString();
-    }
-
-    private String evaluateCol(String[][] grid, int x, int y) {
-        StringBuilder gridContent = new StringBuilder();
-
-        if (y == 0 || grid[y - 1][x].isBlank()) {
-            while (y < grid.length && !grid[y][x].isEmpty()) {
-                gridContent.append(grid[y++][x]);
-            }
-        }
-
-        return gridContent.toString();
+        return gridContents;
     }
 
     @Override

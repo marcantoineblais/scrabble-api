@@ -37,16 +37,18 @@ public class WordController {
     @PostMapping("/grid")
     @CrossOrigin(origins = "http://localhost:3000")
     public List<Solution> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
-        System.out.println(grid);
         long startTime = System.currentTimeMillis();
-        List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
+//        List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
-        SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
-        List<Solution> solutions = solutionsFinder.toSolutions();
+        for (GridContent gridContent : gridContents) {
+            gridContent.testPatterns();
+        }
+//        SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
+//        List<Solution> solutions = solutionsFinder.toSolutions();
 
         long endTime = System.currentTimeMillis() - startTime;
         System.out.println("\nRequest took " + endTime + "ms\n");
 
-        return solutions;
+        return null;
     }
 }
