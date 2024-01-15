@@ -1,19 +1,20 @@
 package com.marcblais.scrabbleapi.dto;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class GridContent {
     private String content;
-    private int x;
-    private int y;
+    private int index;
     private boolean vertical;
 
     public GridContent() {
-        this.content = "";
     }
 
-    public GridContent(String content, int x, int y, boolean vertical) {
+    public GridContent(String content, int index, boolean vertical) {
         this.content = content;
-        this.x = x;
-        this.y = y;
+        this.index = index;
         this.vertical = vertical;
     }
 
@@ -25,20 +26,12 @@ public class GridContent {
         this.content = content;
     }
 
-    public int getX() {
-        return x;
+    public int getIndex() {
+        return index;
     }
 
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
+    public void setIndex(int index) {
+        this.index = index;
     }
 
     public boolean isVertical() {
@@ -49,15 +42,45 @@ public class GridContent {
         this.vertical = vertical;
     }
 
-    public int lastX() {
-        return vertical ? x : x + content.length() - 1;
+    public List<String> testPatterns() {
+        List<String> patterns = new ArrayList<>();
+        List<String> splits = splitContent();
+
+        for (int i = 0; i < splits.size(); i++) {
+            
+        }
+
+        return null;
     }
 
-    public int lastY() {
-        return vertical ? y + content.length() - 1 : y;
+    public List<String> splitContent() {
+        List<String> splits = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
+
+        for (char s : content.toCharArray()) {
+            if (builder.isEmpty())
+                builder.append(s);
+            else if (builder.charAt(0) == ' ' && s == ' ')
+                builder.append(s);
+            else if (builder.charAt(0) != ' ' && s != ' ')
+                builder.append(s);
+            else {
+                splits.add(builder.toString());
+                builder = new StringBuilder();;
+                builder.append(s);
+            }
+        }
+        splits.add(builder.toString());
+
+        return splits;
     }
 
-    public boolean isEmpty() {
-        return content.isEmpty();
+    @Override
+    public String toString() {
+        return "GridContent{" +
+                "content='" + content + '\'' +
+                ", index=" + index +
+                ", vertical=" + vertical +
+                '}';
     }
 }
