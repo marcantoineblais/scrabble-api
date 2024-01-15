@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
+import com.marcblais.scrabbleapi.entities.Grid;
+
 public class SolutionsFinder {
     private Grid grid;
     private List<DictionaryEntry> entries;

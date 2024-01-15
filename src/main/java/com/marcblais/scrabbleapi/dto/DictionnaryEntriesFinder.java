@@ -30,7 +30,7 @@ public class DictionnaryEntriesFinder {
             if (entry.getWord().length() > (gridContent + playerLetters).length())
                 return false;
 
-            return isWordMadeFromLetters(entry, LettersCounter.getLettersCountMap(gridContent + playerLetters));
+            return isWordMadeFromLetters(entry, LettersCounter.lettersCountMap(gridContent + playerLetters));
         }).toList();
     }
 

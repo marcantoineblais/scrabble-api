@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LettersCounter {
-    public static Map<String, Integer> getLettersCountMap(String letters) {
+    public static Map<String, Integer> lettersCountMap(String letters) {
         Map<String, Integer> lettersMap = new HashMap<>();
         String[] lettersArray = letters.split("");
 

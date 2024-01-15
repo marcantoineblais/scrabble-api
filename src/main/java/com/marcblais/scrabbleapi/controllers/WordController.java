@@ -1,13 +1,13 @@
 package com.marcblais.scrabbleapi.controllers;
 
 import com.marcblais.scrabbleapi.dto.*;
+import com.marcblais.scrabbleapi.entities.Grid;
 import com.marcblais.scrabbleapi.entities.Language;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 import com.marcblais.scrabbleapi.services.WordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -37,7 +37,7 @@ public class WordController {
     @CrossOrigin(origins = "http://localhost:3000")
     public List<Solution> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
         long startTime = System.currentTimeMillis();
-        List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getLanguage());
+        List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
 
         SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);

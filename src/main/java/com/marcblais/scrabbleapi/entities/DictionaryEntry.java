@@ -56,7 +56,7 @@ public class DictionaryEntry {
     }
 
     public Map<String, Integer> getLetters() {
-        return LettersCounter.getLettersCountMap(word);
+        return LettersCounter.lettersCountMap(word);
     }
 
     @Override
