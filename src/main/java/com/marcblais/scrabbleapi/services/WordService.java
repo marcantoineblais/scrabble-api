@@ -29,6 +29,10 @@ public class WordService {
         dictionaryEntryRepo.save(dictionaryEntry);
     }
 
+    public List<DictionaryEntry> findAllEntries() {
+        return dictionaryEntryRepo.findAll();
+    }
+
     public List<DictionaryEntry> findWordsByLanguage(Language language) {
         return dictionaryEntryRepo.findByLanguage(language);
     }
