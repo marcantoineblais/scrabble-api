@@ -24,7 +24,7 @@ public class Grid {
 
     public Grid(String grid, String playerLetters, GridType gridType) {
         this.grid = grid;
-        this.playerLetters = playerLetters;
+        this.playerLetters = playerLetters.toUpperCase();
         this.gridType = gridType;
     }
 
@@ -65,7 +65,7 @@ public class Grid {
     }
 
     public void setPlayerLetters(String playerLetters) {
-        this.playerLetters = playerLetters;
+        this.playerLetters = playerLetters.toUpperCase();
     }
 
     public GridType getGridType() {
