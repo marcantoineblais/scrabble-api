@@ -36,6 +36,7 @@ public class WordController {
     @PostMapping("/grid")
     @CrossOrigin(origins = "http://localhost:3000")
     public List<Solution> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
+        System.out.println(grid);
         long startTime = System.currentTimeMillis();
         List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
