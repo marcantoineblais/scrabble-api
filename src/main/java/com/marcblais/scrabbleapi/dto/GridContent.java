@@ -1,8 +1,7 @@
 package com.marcblais.scrabbleapi.dto;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GridContent {
     private String content;
@@ -42,15 +41,28 @@ public class GridContent {
         this.vertical = vertical;
     }
 
-    public List<String> testPatterns() {
-        List<String> patterns = new ArrayList<>();
+    public Set<String> testPatterns() {
+        System.out.println("FOR INDEX " + index);
+        Set<String> tests = new HashSet<>();
         List<String> splits = splitContent();
 
         for (int i = 0; i < splits.size(); i++) {
-            
-        }
+            StringBuilder builder = new StringBuilder();
+            builder.append(splits.get(i));
+            tests.add(builder.toString());
 
-        return null;
+            for (int j = i + 1; j < splits.size(); j ++) {
+                builder.append(splits.get(j));
+                tests.add(builder.toString());
+            }
+        }
+        tests = tests.stream()
+                .map(t -> ".*" + t.trim().replaceAll(" ", ".") + ".*")
+                .filter(t -> !t.equals(".*.*"))
+                .collect(Collectors.toSet());
+        System.out.println(tests);
+
+        return tests;
     }
 
     public List<String> splitContent() {
@@ -66,7 +78,7 @@ public class GridContent {
                 builder.append(s);
             else {
                 splits.add(builder.toString());
-                builder = new StringBuilder();;
+                builder.delete(0, builder.length());
                 builder.append(s);
             }
         }
