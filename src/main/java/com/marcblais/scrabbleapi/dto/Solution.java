@@ -13,19 +13,17 @@ public class Solution implements Comparable<Solution> {
     private boolean vertical;
     private int points;
     private List<AdjacentSolution> adjacentSolutions;
-    private GridContent gridContent;
 
     public Solution() {
     }
 
-    public Solution(DictionaryEntry dictionaryEntry, int x, int y, boolean vertical, int points, List<AdjacentSolution> adjacentSolutions, GridContent gridContent) {
+    public Solution(DictionaryEntry dictionaryEntry, int x, int y, boolean vertical, int points, List<AdjacentSolution> adjacentSolutions) {
         this.dictionaryEntry = dictionaryEntry;
         this.x = x;
         this.y = y;
         this.vertical = vertical;
         this.points = points;
         this.adjacentSolutions = adjacentSolutions;
-        this.gridContent = gridContent;
     }
 
     public DictionaryEntry getDictionaryEntry() {
@@ -76,14 +74,6 @@ public class Solution implements Comparable<Solution> {
         this.adjacentSolutions = adjacentSolutions;
     }
 
-    public GridContent getGridContent() {
-        return gridContent;
-    }
-
-    public void setGridContent(GridContent gridContent) {
-        this.gridContent = gridContent;
-    }
-
     @Override
     public int compareTo(Solution o) {
         if (points == o.getPoints())
@@ -113,7 +103,6 @@ public class Solution implements Comparable<Solution> {
                 ", vertical=" + vertical +
                 ", points=" + points +
                 ", adjacentSolutions=" + adjacentSolutions +
-                ", gridContent=" + gridContent +
                 '}';
     }
 }

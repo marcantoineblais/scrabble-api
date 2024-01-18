@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Entity
 public class DictionaryEntry {
@@ -57,6 +58,18 @@ public class DictionaryEntry {
 
     public Map<String, Integer> getLetters() {
         return LettersCounter.lettersCountMap(word);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DictionaryEntry that)) return false;
+        return Objects.equals(word, that.word);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(word);
     }
 
     @Override
