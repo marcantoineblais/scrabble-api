@@ -7,6 +7,7 @@ public class GridContent {
     private String content;
     private int index;
     private boolean vertical;
+    private boolean temp;
 
     public GridContent() {
     }
@@ -15,6 +16,14 @@ public class GridContent {
         this.content = content;
         this.index = index;
         this.vertical = vertical;
+        this.temp = false;
+    }
+
+    public GridContent(GridContent gridContent) {
+        this.content = gridContent.getContent();
+        this.index = gridContent.getIndex();
+        this.vertical = gridContent.isVertical();
+        this.temp = true;
     }
 
     public String getContent() {
@@ -94,26 +103,8 @@ public class GridContent {
         return patternsMap;
     }
 
-    public List<String> splitContent() {
-        List<String> splits = new ArrayList<>();
-        StringBuilder builder = new StringBuilder();
-
-        for (char s : content.toCharArray()) {
-            if (builder.isEmpty())
-                builder.append(s);
-            else if (builder.charAt(0) == ' ' && s == ' ')
-                builder.append(s);
-            else if (builder.charAt(0) != ' ' && s != ' ')
-                builder.append(s);
-            else {
-                splits.add(builder.toString());
-                builder.delete(0, builder.length());
-                builder.append(s);
-            }
-        }
-        splits.add(builder.toString());
-
-        return splits;
+    public void replaceContent(char newContent, int startIndex) {
+        content = content.substring(0, startIndex) + newContent + content.substring(startIndex + 1);
     }
 
     @Override

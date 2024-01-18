@@ -1,11 +1,7 @@
 package com.marcblais.scrabbleapi.services;
 
-import com.marcblais.scrabbleapi.entities.Language;
-import com.marcblais.scrabbleapi.entities.LettersValue;
-import com.marcblais.scrabbleapi.entities.DictionaryEntry;
-import com.marcblais.scrabbleapi.repositories.LanguageRepo;
-import com.marcblais.scrabbleapi.repositories.PointsRepo;
-import com.marcblais.scrabbleapi.repositories.DictionaryEntryRepo;
+import com.marcblais.scrabbleapi.entities.*;
+import com.marcblais.scrabbleapi.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +13,22 @@ public class WordService {
     private final DictionaryEntryRepo dictionaryEntryRepo;
     private final LanguageRepo languageRepo;
     private final PointsRepo pointsRepo;
+    private final GridRepo gridRepo;
+    private final GridTypeRepo gridTypeRepo;
 
     @Autowired
-    public WordService(DictionaryEntryRepo dictionaryEntryRepo, LanguageRepo languageRepo, PointsRepo pointsRepo) {
+    public WordService(
+            DictionaryEntryRepo dictionaryEntryRepo,
+            LanguageRepo languageRepo,
+            PointsRepo pointsRepo,
+            GridRepo gridRepo,
+            GridTypeRepo gridTypeRepo
+    ) {
         this.dictionaryEntryRepo = dictionaryEntryRepo;
         this.languageRepo = languageRepo;
         this.pointsRepo = pointsRepo;
+        this.gridRepo = gridRepo;
+        this.gridTypeRepo = gridTypeRepo;
     }
 
     public void saveWord(DictionaryEntry dictionaryEntry) {
@@ -51,5 +57,13 @@ public class WordService {
 
     public LettersValue findLettersValueByLanguage(Language language) {
         return pointsRepo.findByLanguage(language);
+    }
+
+    public void saveGrid(Grid grid) {
+        gridRepo.save(grid);
+    }
+
+    public void saveGridType(GridType gridType) {
+        gridTypeRepo.save(gridType);
     }
 }

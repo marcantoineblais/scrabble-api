@@ -14,7 +14,7 @@ public class DictionaryEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(unique = true)
+    @Column(length = 50)
     private String word;
 
     @ManyToOne

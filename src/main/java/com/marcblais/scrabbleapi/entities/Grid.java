@@ -13,7 +13,10 @@ public class Grid {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(length = 1000)
     private String grid;
+
+    @Column(length = 7)
     private String playerLetters;
 
     @ManyToOne
