@@ -23,14 +23,11 @@ public class WordController {
 
     @GetMapping("/letters")
     public List<DictionaryEntry> findWordsWithLetters(@RequestParam(name = "letters") String playerLetters) {
-        long startTime = System.currentTimeMillis();
         Language language = wordService.findLanguageById(1);
         List<DictionaryEntry> entries = wordService.findWordsByLanguage(language);
         List<DictionaryEntry> matchingEntries =
                 DictionnaryEntriesFinder.findEntriesByPlayerLetters(playerLetters.toUpperCase(), entries);
-        long endTime = System.currentTimeMillis() - startTime;
 
-        System.out.println("\nRequest took " + endTime + "ms\n");
         return matchingEntries;
     }
 
