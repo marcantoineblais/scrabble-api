@@ -85,7 +85,7 @@ public class Grid {
 
             for (int x = 0; x < grid[y].length; x++) {
                 if (grid[y][x].isEmpty()) {
-                    content.append(" ");
+                    content.append(".");
                 } else {
                     content.append(grid[y][x]);
                 }
@@ -99,7 +99,7 @@ public class Grid {
 
             for (int y = 0; y < grid.length; y++) {
                 if (grid[y][x].isEmpty()) {
-                    content.append(" ");
+                    content.append(".");
                 } else {
                     content.append(grid[y][x]);
                 }

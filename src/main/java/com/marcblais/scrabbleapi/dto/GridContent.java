@@ -41,28 +41,60 @@ public class GridContent {
         this.vertical = vertical;
     }
 
-    public Set<String> testPatterns() {
+    public Map<Integer, List<String>> testPatterns() {
         System.out.println("FOR INDEX " + index);
-        Set<String> tests = new HashSet<>();
-        List<String> splits = splitContent();
+        Map<Integer, List<String>> patternsMap = new HashMap<>();
+        char[] contentCharArray = content.toCharArray();
 
-        for (int i = 0; i < splits.size(); i++) {
+        for (int i = 0; i < contentCharArray.length; i++) {
+            List<String> patterns = new ArrayList<>();
             StringBuilder builder = new StringBuilder();
-            builder.append(splits.get(i));
-            tests.add(builder.toString());
+            boolean containsLetter = false;
+            int remainingLetters = 7;
 
-            for (int j = i + 1; j < splits.size(); j ++) {
-                builder.append(splits.get(j));
-                tests.add(builder.toString());
+            if (contentCharArray[i] != '.') {
+                while (i < contentCharArray.length && contentCharArray[i] != '.') {
+                    builder.append(contentCharArray[i++]);
+                }
+
+                containsLetter = true;
             }
-        }
-        tests = tests.stream()
-                .map(t -> ".*" + t.trim().replaceAll(" ", ".") + ".*")
-                .filter(t -> !t.equals(".*.*"))
-                .collect(Collectors.toSet());
-        System.out.println(tests);
 
-        return tests;
+
+            int j = i;
+
+            while (remainingLetters > 0 && j < contentCharArray.length) {
+                builder.append(contentCharArray[j]);
+
+                if (contentCharArray[j] == '.')
+                    remainingLetters -= 1;
+                else {
+                    while (j < contentCharArray.length - 1 && contentCharArray[j + 1] != '.') {
+                        builder.append(contentCharArray[++j]);
+                    }
+
+                    containsLetter = true;
+                }
+
+                if (
+                        containsLetter &&
+                        (
+                                (j < contentCharArray.length - 1 && contentCharArray[j + 1] == '.') ||
+                                j == contentCharArray.length - 1
+                        )
+                )
+                    patterns.add(builder.toString());
+
+                j++;
+            }
+
+            if (!patterns.isEmpty())
+                patternsMap.put(i, patterns);
+        }
+
+        System.out.println(patternsMap);
+
+        return patternsMap;
     }
 
     public List<String> splitContent() {
