@@ -42,7 +42,6 @@ public class GridContent {
     }
 
     public Map<Integer, List<String>> testPatterns() {
-        System.out.println("FOR INDEX " + index);
         Map<Integer, List<String>> patternsMap = new HashMap<>();
         char[] contentCharArray = content.toCharArray();
 
@@ -51,6 +50,7 @@ public class GridContent {
             StringBuilder builder = new StringBuilder();
             boolean containsLetter = false;
             int remainingLetters = 7;
+            int startIndex = i;
 
             if (contentCharArray[i] != '.') {
                 while (i < contentCharArray.length && contentCharArray[i] != '.') {
@@ -59,7 +59,6 @@ public class GridContent {
 
                 containsLetter = true;
             }
-
 
             int j = i;
 
@@ -89,10 +88,8 @@ public class GridContent {
             }
 
             if (!patterns.isEmpty())
-                patternsMap.put(i, patterns);
+                patternsMap.put(startIndex, patterns);
         }
-
-        System.out.println(patternsMap);
 
         return patternsMap;
     }

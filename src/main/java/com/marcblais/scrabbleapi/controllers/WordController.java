@@ -26,29 +26,26 @@ public class WordController {
         long startTime = System.currentTimeMillis();
         Language language = wordService.findLanguageById(1);
         List<DictionaryEntry> entries = wordService.findWordsByLanguage(language);
-        DictionnaryEntriesFinder dictionnaryEntriesFinder =
-                new DictionnaryEntriesFinder(entries, playerLetters.toUpperCase());
-
+        List<DictionaryEntry> matchingEntries =
+                DictionnaryEntriesFinder.findEntriesByPlayerLetters(playerLetters.toUpperCase(), entries);
         long endTime = System.currentTimeMillis() - startTime;
+
         System.out.println("\nRequest took " + endTime + "ms\n");
-        return dictionnaryEntriesFinder.getEntries();
+        return matchingEntries;
     }
 
     @PostMapping("/grid")
     @CrossOrigin(origins = "http://localhost:3000")
     public List<Solution> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
         long startTime = System.currentTimeMillis();
-//        List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
+        List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
-        for (GridContent gridContent : gridContents) {
-            gridContent.testPatterns();
-        }
-//        SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
-//        List<Solution> solutions = solutionsFinder.toSolutions();
+        SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
+        List<Solution> solutions = solutionsFinder.toSolutions();
 
         long endTime = System.currentTimeMillis() - startTime;
         System.out.println("\nRequest took " + endTime + "ms\n");
 
-        return null;
+        return solutions;
     }
 }
