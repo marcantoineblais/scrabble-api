@@ -66,4 +66,8 @@ public class WordService {
     public void saveGridType(GridType gridType) {
         gridTypeRepo.save(gridType);
     }
+
+    public Grid findGridById(long id) {
+        return gridRepo.findById(id).orElse(null);
+    }
 }

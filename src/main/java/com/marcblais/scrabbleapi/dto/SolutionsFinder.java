@@ -73,14 +73,19 @@ public class SolutionsFinder {
                     }
 
                     // test every matches to make sure they can be played on the grid
-                    solutions.addAll(
-                            findSolutionForEntries(matchingEntries, gridContent, key, pattern, adjacentSolution)
-                    );
+                    List<Solution> solutionsForEntries =
+                            findSolutionForEntries(matchingEntries, gridContent, key, pattern, adjacentSolution);
+
+                    // to avoid missing data because of the multi-threading, the list of solutions is in a syncronized block
+                    synchronized (solutions) {
+                        solutions.addAll(solutionsForEntries);
+                    }
                 }));
             }
         }
 
         startThreads(threads);
+
         return solutions;
     }
 
