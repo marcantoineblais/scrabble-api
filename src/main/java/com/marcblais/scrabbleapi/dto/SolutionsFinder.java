@@ -28,19 +28,20 @@ public class SolutionsFinder {
         List<Solution> solutions = new ArrayList<>();
 
         for (GridContent gridContent : gridContents) {
-            solutions.addAll(findSolutionsForGridContent(gridContent, null, null));
+            solutions.addAll(findSolutionsForGridContent(
+                    gridContent, null, null, ""));
         }
 
         solutions.addAll(findParallelSolution(solutions));
         return solutions;
     }
 
-    private List<DictionaryEntry> findMatchingEntries(String pattern) {
-        return DictionnaryEntriesFinder.findEntriesByPattern(pattern, grid.getPlayerLetters(), entries);
+    private List<DictionaryEntry> findMatchingEntries(String pattern, String ignoredLetter) {
+        return DictionnaryEntriesFinder.findEntriesByPattern(pattern, grid.getPlayerLetters(), entries, ignoredLetter);
     }
 
     private List<Solution> findSolutionsForGridContent(
-           GridContent gridContent, GridContent oldGridContent, AdjacentSolution adjacentSolution
+           GridContent gridContent, GridContent oldGridContent, AdjacentSolution adjacentSolution, String ignoredLetter
     ) {
         List<Solution> solutions = new ArrayList<>();
         List<Thread> threads = new ArrayList<>();
@@ -65,10 +66,10 @@ public class SolutionsFinder {
 
                     // check if pattern was found before, if so get its matches
                     // else find the matches in the dictionnary and add it to the map
-                    if (foundEntriesMap.containsKey(pattern)) {
+                    if (foundEntriesMap.containsKey(pattern) && oldGridContent == null) {
                         matchingEntries = foundEntriesMap.get(pattern);
                     } else {
-                        matchingEntries = findMatchingEntries(pattern);
+                        matchingEntries = findMatchingEntries(pattern, ignoredLetter);
                         foundEntriesMap.put(pattern, matchingEntries);
                     }
 
@@ -99,7 +100,8 @@ public class SolutionsFinder {
         List<Solution> solutions = new ArrayList<>();
         for (DictionaryEntry entry : entries) {
             // find the words that are formed perpendicular to the solution
-            Map<Integer, AdjacentSolution> adjacentSolutions = findAdjacentSolutions(entry, gridContent, index, pattern);
+            Map<Integer, AdjacentSolution> adjacentSolutions =
+                    findAdjacentSolutions(entry, gridContent, index, pattern);
 
             // Only add the solution if its adjacent solutions are all valid words
             if (adjacentSolutions != null) {
@@ -148,9 +150,8 @@ public class SolutionsFinder {
             char newContent = startIndex == index ? word.charAt(0) : word.charAt(1);
 
             tempGridContent.replaceContent(newContent, gridContent.getIndex());
-            parallelSolutions.addAll(
-                    findSolutionsForGridContent(tempGridContent, perpendicularContent, adjacentSolution)
-            );
+            parallelSolutions.addAll(findSolutionsForGridContent(
+                            tempGridContent, perpendicularContent, adjacentSolution, String.valueOf(newContent)));
         }
 
         return parallelSolutions;

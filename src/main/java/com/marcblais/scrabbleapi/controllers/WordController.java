@@ -35,7 +35,6 @@ public class WordController {
     @PostMapping("/grid")
     @CrossOrigin(origins = "http://localhost:3000")
     public List<Solution> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
-        grid = wordService.findGridById(4);
         long startTime = System.currentTimeMillis();
         LettersValue lettersValue = wordService.findLettersValueByLanguage(grid.getGridType().getLanguage());
         List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
@@ -44,6 +43,7 @@ public class WordController {
         List<Solution> solutions = solutionsFinder.toSolutions();
         PointCalculator pointCalculator = new PointCalculator(grid, solutions, lettersValue);
         pointCalculator.calculatePoints();
+        solutions.sort(Solution::compareTo);
 
         long endTime = System.currentTimeMillis() - startTime;
         System.out.println("\nRequest took " + endTime + "ms\n");
