@@ -84,7 +84,7 @@ public class SolutionsFinder {
             }
         }
 
-        startThreads(threads);
+        ThreadsRunner.runThreads(threads);
 
         return solutions;
     }
@@ -99,21 +99,25 @@ public class SolutionsFinder {
         List<Solution> solutions = new ArrayList<>();
         for (DictionaryEntry entry : entries) {
             // find the words that are formed perpendicular to the solution
-            List<AdjacentSolution> adjacentSolutions = findAdjacentSolutions(entry, gridContent, index, pattern);
+            Map<Integer, AdjacentSolution> adjacentSolutions = findAdjacentSolutions(entry, gridContent, index, pattern);
 
             // Only add the solution if its adjacent solutions are all valid words
             if (adjacentSolutions != null) {
-                if (adjacentSolution != null)
-                    adjacentSolutions.add(adjacentSolution);
+                if (adjacentSolution != null) {
+                    int i = 0;
+                    while (pattern.charAt(i) == '.') {
+                        i++;
+                    }
+                    adjacentSolutions.put(i, adjacentSolution);
+                }
 
                 Solution solution = new Solution(
                         entry,
-                        gridContent.isVertical() ? gridContent.getIndex() : index,
-                        gridContent.isVertical() ? index : gridContent.getIndex(),
-                        gridContent.isVertical(),
-                        0,
+                        gridContent,
                         adjacentSolutions,
-                        gridContent
+                        gridContent.isVertical(),
+                        gridContent.isVertical() ? gridContent.getIndex() : index,
+                        gridContent.isVertical() ? index : gridContent.getIndex()
                 );
 
                 solutions.add(solution);
@@ -139,7 +143,7 @@ public class SolutionsFinder {
 
             GridContent perpendicularContent = findPerpendicularContent(gridContent, startIndex);
             GridContent tempGridContent = new GridContent(perpendicularContent);
-            AdjacentSolution adjacentSolution = new AdjacentSolution(solution.getDictionaryEntry(), 0);
+            AdjacentSolution adjacentSolution = new AdjacentSolution(solution.getDictionaryEntry());
             String word = solution.getDictionaryEntry().getWord();
             char newContent = startIndex == index ? word.charAt(0) : word.charAt(1);
 
@@ -152,10 +156,10 @@ public class SolutionsFinder {
         return parallelSolutions;
     }
 
-    private List<AdjacentSolution> findAdjacentSolutions(
+    private Map<Integer, AdjacentSolution> findAdjacentSolutions(
             DictionaryEntry entry, GridContent gridContent, int index, String pattern
     ) {
-        List<AdjacentSolution> adjacentSolutions = new ArrayList<>();
+        Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
         char[] charsArray = gridContent.getContent().toCharArray();
 
         for (int i = 0; i < pattern.length(); i++) {
@@ -184,8 +188,8 @@ public class SolutionsFinder {
                             if (!foundAdjacentEntries.containsKey(adjacentSolutionString))
                                 foundAdjacentEntries.put(adjacentSolutionString, adjacentEntry);
 
-                            AdjacentSolution adjacentSolution = new AdjacentSolution(adjacentEntry, 0);
-                            adjacentSolutions.add(adjacentSolution);
+                            AdjacentSolution adjacentSolution = new AdjacentSolution(adjacentEntry);
+                            adjacentSolutions.put(i, adjacentSolution);
                         } else {
                             return null;
                         }
@@ -220,30 +224,5 @@ public class SolutionsFinder {
         }
 
         return builder.toString();
-    }
-
-    private void startThreads(List<Thread> threads) {
-        Set<Thread> threadSubSet = new HashSet<>();
-        int cores = Runtime.getRuntime().availableProcessors();
-
-        for (int i = 0; i < threads.size(); i++) {
-            threadSubSet.add(threads.get(i));
-
-            if (i % cores == cores - 1 || i == threads.size() - 1) {
-                for (Thread thread : threadSubSet) {
-                    thread.start();
-                }
-
-                for (Thread thread : threadSubSet) {
-                    try {
-                        thread.join();
-                    } catch (Exception ex) {
-                        System.out.println(ex.getMessage());
-                    }
-                }
-
-                threadSubSet.clear();
-            }
-        }
     }
 }
