@@ -7,7 +7,6 @@ public class GridContent {
     private String content;
     private int index;
     private boolean vertical;
-    private boolean temp;
 
     public GridContent() {
     }
@@ -16,14 +15,12 @@ public class GridContent {
         this.content = content;
         this.index = index;
         this.vertical = vertical;
-        this.temp = false;
     }
 
     public GridContent(GridContent gridContent) {
         this.content = gridContent.getContent();
         this.index = gridContent.getIndex();
         this.vertical = gridContent.isVertical();
-        this.temp = true;
     }
 
     public String getContent() {

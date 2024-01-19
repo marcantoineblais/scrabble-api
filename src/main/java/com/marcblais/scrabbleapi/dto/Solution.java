@@ -9,24 +9,31 @@ import java.util.Objects;
 
 public class Solution implements Comparable<Solution> {
     private DictionaryEntry dictionaryEntry;
+    private GridContent gridContent;
+    private Map<Integer, AdjacentSolution> adjacentSolutions;
+    private boolean vertical;
     private int x;
     private int y;
-    private boolean vertical;
     private int points;
-    private List<AdjacentSolution> adjacentSolutions;
-    private GridContent gridContent;
 
     public Solution() {
     }
 
-    public Solution(DictionaryEntry dictionaryEntry, int x, int y, boolean vertical, int points, List<AdjacentSolution> adjacentSolutions, GridContent gridContent) {
+    public Solution(
+            DictionaryEntry dictionaryEntry,
+            GridContent gridContent,
+            Map<Integer, AdjacentSolution> adjacentSolutions,
+            boolean vertical,
+            int x,
+            int y
+    ) {
         this.dictionaryEntry = dictionaryEntry;
+        this.gridContent = gridContent;
+        this.adjacentSolutions = adjacentSolutions;
+        this.vertical = vertical;
         this.x = x;
         this.y = y;
-        this.vertical = vertical;
-        this.points = points;
-        this.adjacentSolutions = adjacentSolutions;
-        this.gridContent = gridContent;
+        this.points = 0;
     }
 
     public DictionaryEntry getDictionaryEntry() {
@@ -69,11 +76,11 @@ public class Solution implements Comparable<Solution> {
         this.points = points;
     }
 
-    public List<AdjacentSolution> getAdjacentSolutions() {
+    public Map<Integer, AdjacentSolution> getAdjacentSolutions() {
         return adjacentSolutions;
     }
 
-    public void setAdjacentSolutions(List<AdjacentSolution> adjacentSolutions) {
+    public void setAdjacentSolutions(Map<Integer, AdjacentSolution> adjacentSolutions) {
         this.adjacentSolutions = adjacentSolutions;
     }
 

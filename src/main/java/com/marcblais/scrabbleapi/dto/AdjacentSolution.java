@@ -11,9 +11,9 @@ public class AdjacentSolution {
     public AdjacentSolution() {
     }
 
-    public AdjacentSolution(DictionaryEntry entry, int points) {
+    public AdjacentSolution(DictionaryEntry entry) {
         this.entry = entry;
-        this.points = points;
+        this.points = 0;
     }
 
     public DictionaryEntry getEntry() {
