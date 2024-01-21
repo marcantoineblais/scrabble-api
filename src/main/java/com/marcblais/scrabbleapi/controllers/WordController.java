@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 public class WordController {
@@ -23,10 +24,10 @@ public class WordController {
     }
 
     @GetMapping("/letters")
-    public List<DictionaryEntry> findWordsWithLetters(@RequestParam(name = "letters") String playerLetters) {
+    public Set<DictionaryEntry> findWordsWithLetters(@RequestParam(name = "letters") String playerLetters) {
         Language language = wordService.findLanguageById(1);
-        List<DictionaryEntry> entries = wordService.findWordsByLanguage(language);
-        List<DictionaryEntry> matchingEntries =
+        Set<DictionaryEntry> entries = wordService.findWordsByLanguage(language);
+        Set<DictionaryEntry> matchingEntries =
                 DictionnaryEntriesFinder.findEntriesByPlayerLetters(playerLetters.toUpperCase(), entries);
 
         return matchingEntries;
@@ -37,17 +38,16 @@ public class WordController {
     public List<Solution> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
         long startTime = System.currentTimeMillis();
         LettersValue lettersValue = wordService.findLettersValueByLanguage(grid.getGridType().getLanguage());
-        List<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
+        Set<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
         SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
-        List<Solution> solutions = solutionsFinder.toSolutions();
+        Set<Solution> solutions = solutionsFinder.toSolutions();
         PointCalculator pointCalculator = new PointCalculator(grid, solutions, lettersValue);
         pointCalculator.calculatePoints();
-        solutions.sort(Solution::compareTo);
 
         long endTime = System.currentTimeMillis() - startTime;
         System.out.println("\nRequest took " + endTime + "ms\n");
 
-        return solutions;
+        return pointCalculator.findTopSolutions(10);
     }
 }

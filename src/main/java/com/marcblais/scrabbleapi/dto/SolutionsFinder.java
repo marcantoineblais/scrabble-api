@@ -1,31 +1,28 @@
 package com.marcblais.scrabbleapi.dto;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 import com.marcblais.scrabbleapi.entities.Grid;
 
 public class SolutionsFinder {
     private Grid grid;
-    private List<DictionaryEntry> entries;
+    private Set<DictionaryEntry> entries;
     private List<GridContent> gridContents;
-    private Map<String, List<DictionaryEntry>> foundEntriesMap;
-    private Map<String, DictionaryEntry> foundAdjacentEntries;
 
     public SolutionsFinder() {
     }
 
-    public SolutionsFinder(Grid grid, List<DictionaryEntry> entries, List<GridContent> gridContents) {
+    public SolutionsFinder(Grid grid, Set<DictionaryEntry> entries, List<GridContent> gridContents) {
         this.grid = grid;
         this.entries = entries;
         this.gridContents = gridContents;
-        this.foundEntriesMap  = new HashMap<>();
-        this.foundAdjacentEntries  = new HashMap<>();
     }
 
-    public List<Solution> toSolutions() {
+    public Set<Solution> toSolutions() {
         // Initialize list of working solutions
-        List<Solution> solutions = new ArrayList<>();
+        Set<Solution> solutions = new HashSet<>();
 
         for (GridContent gridContent : gridContents) {
             solutions.addAll(findSolutionsForGridContent(
@@ -36,7 +33,7 @@ public class SolutionsFinder {
         return solutions;
     }
 
-    private List<DictionaryEntry> findMatchingEntries(String pattern, String ignoredLetter) {
+    private Set<DictionaryEntry> findMatchingEntries(String pattern, String ignoredLetter) {
         return DictionnaryEntriesFinder.findEntriesByPattern(pattern, grid.getPlayerLetters(), entries, ignoredLetter);
     }
 
@@ -45,6 +42,7 @@ public class SolutionsFinder {
     ) {
         List<Solution> solutions = new ArrayList<>();
         List<Thread> threads = new ArrayList<>();
+        Map<String, Set<DictionaryEntry>> foundEntriesMap = new HashMap<>();
 
         // Get a list of regexp pattern to find words, sorted by index of grid content characters array
         Map<Integer, List<String>> testPatterns = gridContent.testPatterns();
@@ -62,7 +60,7 @@ public class SolutionsFinder {
             for (String pattern : testPatterns.get(key)) {
                 threads.add(new Thread(() -> {
                     // initialize a list of entries that matches the regexp pattern and the players letters
-                    List<DictionaryEntry> matchingEntries;
+                    Set<DictionaryEntry> matchingEntries;
 
                     // check if pattern was found before, if so get its matches
                     // else find the matches in the dictionnary and add it to the map
@@ -70,14 +68,17 @@ public class SolutionsFinder {
                         matchingEntries = foundEntriesMap.get(pattern);
                     } else {
                         matchingEntries = findMatchingEntries(pattern, ignoredLetter);
-                        foundEntriesMap.put(pattern, matchingEntries);
+
+                        synchronized (foundEntriesMap) {
+                            foundEntriesMap.put(pattern, matchingEntries);
+                        }
                     }
 
                     // test every matches to make sure they can be played on the grid
-                    List<Solution> solutionsForEntries =
+                    Set<Solution> solutionsForEntries =
                             findSolutionForEntries(matchingEntries, gridContent, key, pattern, adjacentSolution);
 
-                    // to avoid missing data because of the multi-threading, the list of solutions is in a syncronized block
+                    // to avoid missing data because of the multi-threading
                     synchronized (solutions) {
                         solutions.addAll(solutionsForEntries);
                     }
@@ -90,14 +91,14 @@ public class SolutionsFinder {
         return solutions;
     }
 
-    private List<Solution> findSolutionForEntries(
-            List<DictionaryEntry> entries,
+    private Set<Solution> findSolutionForEntries(
+            Set<DictionaryEntry> entries,
             GridContent gridContent,
             int index,
             String pattern,
             AdjacentSolution adjacentSolution
     ) {
-        List<Solution> solutions = new ArrayList<>();
+        Set<Solution> solutions = new HashSet<>();
         for (DictionaryEntry entry : entries) {
             // find the words that are formed perpendicular to the solution
             Map<Integer, AdjacentSolution> adjacentSolutions =
@@ -117,6 +118,7 @@ public class SolutionsFinder {
                         entry,
                         gridContent,
                         adjacentSolutions,
+                        pattern,
                         gridContent.isVertical(),
                         gridContent.isVertical() ? gridContent.getIndex() : index,
                         gridContent.isVertical() ? index : gridContent.getIndex()
@@ -129,11 +131,11 @@ public class SolutionsFinder {
         return solutions;
     }
 
-    private List<Solution> findParallelSolution(List<Solution> solutions) {
-        List<Solution> parallelSolutions = new ArrayList<>();
-        List<Solution> solutionsToTest = solutions.stream()
-                .filter(s -> s.getDictionaryEntry().getWord().length() == 2 && s.getAdjacentSolutions().isEmpty())
-                .toList();
+    private Set<Solution> findParallelSolution(Set<Solution> solutions) {
+        Set<Solution> parallelSolutions = new HashSet<>();
+        Set<Solution> solutionsToTest = solutions.stream()
+                .filter(s -> s.getEntry().getWord().length() == 2 && s.getAdjacentSolutions().isEmpty())
+                .collect(Collectors.toSet());
 
         for (Solution solution : solutionsToTest) {
             GridContent gridContent = solution.getGridContent();
@@ -145,8 +147,8 @@ public class SolutionsFinder {
 
             GridContent perpendicularContent = findPerpendicularContent(gridContent, startIndex);
             GridContent tempGridContent = new GridContent(perpendicularContent);
-            AdjacentSolution adjacentSolution = new AdjacentSolution(solution.getDictionaryEntry());
-            String word = solution.getDictionaryEntry().getWord();
+            AdjacentSolution adjacentSolution = new AdjacentSolution(solution.getEntry());
+            String word = solution.getEntry().getWord();
             char newContent = startIndex == index ? word.charAt(0) : word.charAt(1);
 
             tempGridContent.replaceContent(newContent, gridContent.getIndex());
@@ -180,15 +182,9 @@ public class SolutionsFinder {
                     // if there is at least 2 letters, make sure they form a valid word
                     // else reject this solution
                     if (adjacentSolutionString.length() > 1) {
-                        if (foundAdjacentEntries.containsKey(adjacentSolutionString))
-                            adjacentEntry = foundAdjacentEntries.get(adjacentSolutionString);
-                        else
-                            adjacentEntry = DictionnaryEntriesFinder.findEntryByWord(adjacentSolutionString, entries);
+                        adjacentEntry = DictionnaryEntriesFinder.findEntryByWord(adjacentSolutionString, entries);
 
                         if (adjacentEntry != null) {
-                            if (!foundAdjacentEntries.containsKey(adjacentSolutionString))
-                                foundAdjacentEntries.put(adjacentSolutionString, adjacentEntry);
-
                             AdjacentSolution adjacentSolution = new AdjacentSolution(adjacentEntry);
                             adjacentSolutions.put(i, adjacentSolution);
                         } else {

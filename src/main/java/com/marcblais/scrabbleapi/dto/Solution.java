@@ -8,9 +8,10 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Solution implements Comparable<Solution> {
-    private DictionaryEntry dictionaryEntry;
+    private DictionaryEntry entry;
     private GridContent gridContent;
     private Map<Integer, AdjacentSolution> adjacentSolutions;
+    private String pattern;
     private boolean vertical;
     private int x;
     private int y;
@@ -20,28 +21,54 @@ public class Solution implements Comparable<Solution> {
     }
 
     public Solution(
-            DictionaryEntry dictionaryEntry,
+            DictionaryEntry entry,
             GridContent gridContent,
             Map<Integer, AdjacentSolution> adjacentSolutions,
+            String pattern,
             boolean vertical,
             int x,
             int y
     ) {
-        this.dictionaryEntry = dictionaryEntry;
+        this.entry = entry;
         this.gridContent = gridContent;
         this.adjacentSolutions = adjacentSolutions;
+        this.pattern = pattern;
         this.vertical = vertical;
         this.x = x;
         this.y = y;
         this.points = 0;
     }
 
-    public DictionaryEntry getDictionaryEntry() {
-        return dictionaryEntry;
+    public DictionaryEntry getEntry() {
+        return entry;
     }
 
-    public void setDictionaryEntry(DictionaryEntry dictionaryEntry) {
-        this.dictionaryEntry = dictionaryEntry;
+    public void setEntry(DictionaryEntry entry) {
+        this.entry = entry;
+    }
+
+    public GridContent getGridContent() {
+        return gridContent;
+    }
+
+    public void setGridContent(GridContent gridContent) {
+        this.gridContent = gridContent;
+    }
+
+    public Map<Integer, AdjacentSolution> getAdjacentSolutions() {
+        return adjacentSolutions;
+    }
+
+    public void setAdjacentSolutions(Map<Integer, AdjacentSolution> adjacentSolutions) {
+        this.adjacentSolutions = adjacentSolutions;
+    }
+
+    public String getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
     }
 
     public int getX() {
@@ -76,26 +103,10 @@ public class Solution implements Comparable<Solution> {
         this.points = points;
     }
 
-    public Map<Integer, AdjacentSolution> getAdjacentSolutions() {
-        return adjacentSolutions;
-    }
-
-    public void setAdjacentSolutions(Map<Integer, AdjacentSolution> adjacentSolutions) {
-        this.adjacentSolutions = adjacentSolutions;
-    }
-
-    public GridContent getGridContent() {
-        return gridContent;
-    }
-
-    public void setGridContent(GridContent gridContent) {
-        this.gridContent = gridContent;
-    }
-
     @Override
     public int compareTo(Solution o) {
         if (points == o.getPoints())
-            return dictionaryEntry.getWord().compareTo(o.getDictionaryEntry().getWord());
+            return entry.getWord().compareTo(o.getEntry().getWord());
         else
             return Integer.compare(o.getPoints(), points);
     }
@@ -104,18 +115,18 @@ public class Solution implements Comparable<Solution> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Solution solution)) return false;
-        return x == solution.x && y == solution.y && vertical == solution.vertical && Objects.equals(dictionaryEntry, solution.dictionaryEntry);
+        return x == solution.x && y == solution.y && vertical == solution.vertical && Objects.equals(entry, solution.entry);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(dictionaryEntry, x, y, vertical);
+        return Objects.hash(entry, x, y, vertical);
     }
 
     @Override
     public String toString() {
         return "Solution{" +
-                "dictionaryEntry=" + dictionaryEntry +
+                "entry=" + entry +
                 ", x=" + x +
                 ", y=" + y +
                 ", vertical=" + vertical +
