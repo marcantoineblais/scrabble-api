@@ -5,11 +5,13 @@ import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class DictionnaryEntriesFinder {
 
-    public static DictionaryEntry findEntryByWord(String word, List<DictionaryEntry> entries) {
+    public static DictionaryEntry findEntryByWord(String word, Set<DictionaryEntry> entries) {
         return entries.stream().filter(e -> e.getWord().equals(word)).findFirst().orElse(null);
     }
 
@@ -27,7 +29,7 @@ public class DictionnaryEntriesFinder {
         return true;
     }
 
-    public static List<DictionaryEntry> findEntriesByPlayerLetters(String playerLetters, List<DictionaryEntry> entries) {
+    public static Set<DictionaryEntry> findEntriesByPlayerLetters(String playerLetters, Set<DictionaryEntry> entries) {
         Map<String, Integer> lettersCountMap =
                 LettersCounter.lettersCountMap(playerLetters);
 
@@ -36,11 +38,11 @@ public class DictionnaryEntriesFinder {
                 return false;
 
             return isWordMadeFromLetters(entry, lettersCountMap);
-        }).toList();
+        }).collect(Collectors.toSet());
     }
 
-    public static List<DictionaryEntry> findEntriesByPattern(
-            String pattern, String playerLetters, List<DictionaryEntry> entries, String ignoredLetter
+    public static Set<DictionaryEntry> findEntriesByPattern(
+            String pattern, String playerLetters, Set<DictionaryEntry> entries, String ignoredLetter
     ) {
         String letters = pattern.replace(".", "") + playerLetters;
         Map<String, Integer> lettersCountMap = LettersCounter.lettersCountMap(letters);
@@ -57,6 +59,6 @@ public class DictionnaryEntriesFinder {
                 return false;
 
             return isWordMadeFromLetters(entry, lettersCountMap);
-        }).toList();
+        }).collect(Collectors.toSet());
     }
 }

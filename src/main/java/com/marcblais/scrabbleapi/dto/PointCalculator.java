@@ -5,19 +5,38 @@ import com.marcblais.scrabbleapi.entities.LettersValue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class PointCalculator {
     private Grid grid;
-    private List<Solution> solutions;
+    private Set<Solution> solutions;
     private LettersValue lettersValue;
 
     public PointCalculator() {
     }
 
-    public PointCalculator(Grid grid, List<Solution> solutions, LettersValue lettersValue) {
+    public PointCalculator(Grid grid, Set<Solution> solutions, LettersValue lettersValue) {
         this.grid = grid;
         this.solutions = solutions;
         this.lettersValue = lettersValue;
+    }
+
+    public List<Solution> findTopSolutions(int size) {
+        List<Solution> bestSolutions = new ArrayList<>();
+
+        for (Solution solution : solutions) {
+            Solution minPoints = bestSolutions.stream().min(Solution::compareTo).orElse(new Solution());
+
+            if (bestSolutions.size() < size || solution.compareTo(minPoints) < 0) {
+                bestSolutions.add(solution);
+
+                if (bestSolutions.size() > size)
+                    bestSolutions.remove(minPoints);
+            }
+        }
+
+        bestSolutions.sort(Solution::compareTo);
+        return bestSolutions;
     }
 
     public void calculatePoints() {
@@ -42,14 +61,19 @@ public class PointCalculator {
             calculateBonus(doubleWords, solution, 1, false);
             calculateBonus(tripleWords, solution, 2, false);
 
+            // Add all the points from the adjacent solutions to the solution
+            for (int key : solution.getAdjacentSolutions().keySet()) {
+                solution.setPoints(solution.getPoints() + solution.getAdjacentSolutions().get(key).getPoints());
+            }
+
             // Count how many letters were used
             if (solution.isVertical()) {
-                for (int i = 0; i < solution.getDictionaryEntry().getWord().length(); i++) {
+                for (int i = 0; i < solution.getEntry().getWord().length(); i++) {
                     if (grid.getGrid()[y + i][x].isEmpty())
                         letterUsed++;
                 }
             } else {
-                for (int i = 0; i < solution.getDictionaryEntry().getWord().length(); i++) {
+                for (int i = 0; i < solution.getEntry().getWord().length(); i++) {
                     if (grid.getGrid()[y][x + i].isEmpty())
                         letterUsed++;
                 }
@@ -62,26 +86,25 @@ public class PointCalculator {
     }
 
     private void calculateBasePoints(Solution solution) {
-        String[] letters = solution.getDictionaryEntry().getWord().split("");
-        int points = 0;
+        String[] solutionLetters = solution.getEntry().getWord().split("");
+        int solutionPoints = 0;
 
-        for (String letter : letters) {
-            points += lettersValue.getPoints().get(letter);
+        for (String letter : solutionLetters) {
+            solutionPoints += lettersValue.getPoints().get(letter);
         }
 
-        solution.setPoints(points);
+        solution.setPoints(solutionPoints);
 
         for (int key : solution.getAdjacentSolutions().keySet()) {
             AdjacentSolution adjacentSolution = solution.getAdjacentSolutions().get(key);
-            letters = adjacentSolution.getEntry().getWord().split("");
-            points = 0;
+            String[] letters = adjacentSolution.getEntry().getWord().split("");
+            int points = 0;
 
             for (String letter : letters) {
                 points += lettersValue.getPoints().get(letter);
             }
 
             adjacentSolution.setPoints(points);
-            solution.setPoints(solution.getPoints() + points);
         }
     }
 
@@ -94,11 +117,10 @@ public class PointCalculator {
                 int x = coordinates[0];
                 int y = coordinates[1];
 
-                if (
-                        x == solution.getX() && y >= solution.getY() &&
-                        y < solution.getY() + solution.getDictionaryEntry().getWord().length() &&
-                        grid.getGrid()[y][x].isEmpty()
-                )
+                if (x == solution.getX() &&
+                        y >= solution.getY() &&
+                        y < solution.getY() + solution.getEntry().getWord().length() &&
+                        grid.getGrid()[y][x].isEmpty())
                     bonusList.add(y);
             }
         } else {
@@ -106,11 +128,10 @@ public class PointCalculator {
                 int x = coordinates[0];
                 int y = coordinates[1];
 
-                if (
-                        y == solution.getY() && x >= solution.getX() &&
-                        x < solution.getX() + solution.getDictionaryEntry().getWord().length() &&
-                        grid.getGrid()[y][x].isEmpty()
-                )
+                if (y == solution.getY() &&
+                        x >= solution.getX() &&
+                        x < solution.getX() + solution.getEntry().getWord().length() &&
+                        grid.getGrid()[y][x].isEmpty())
                     bonusList.add(x);
             }
         }
@@ -124,7 +145,7 @@ public class PointCalculator {
 
             // Find under what letter the bonus is
             int positionInWord = solution.isVertical() ? i - solution.getY() : i - solution.getX();
-            String letter = solution.getDictionaryEntry().getWord().substring(positionInWord, positionInWord + 1);
+            String letter = solution.getEntry().getWord().substring(positionInWord, positionInWord + 1);
 
             // Chose the value to increment based on bonus type
             int bonus = isLetter ? lettersValue.getPoints().get(letter) : solution.getPoints();
@@ -133,24 +154,12 @@ public class PointCalculator {
             solution.setPoints(solution.getPoints() + (bonus * ratio));
 
             // Check if bonus also affects an adjacent word formed by the player
-            if (solution.isVertical()) {
-                adjacentSolution = solution.getAdjacentSolutions().get(i - solution.getY());
-                int x = solution.getX();
+            adjacentSolution = solution.getAdjacentSolutions().get(positionInWord);
 
-                // Apply the bonus again if an adjacent word is present
-                if (adjacentSolution != null) {
-                    bonus = isLetter ? lettersValue.getPoints().get(letter) : adjacentSolution.getPoints();
-                    solution.setPoints(solution.getPoints() + (bonus * ratio));
-                }
-            } else {
-                adjacentSolution = solution.getAdjacentSolutions().get(i - solution.getX());
-                int y = solution.getY();
-
-                // Apply the bonus again if an adjacent word is present
-                if (adjacentSolution != null) {
-                    bonus = isLetter ? lettersValue.getPoints().get(letter) : adjacentSolution.getPoints();
-                    solution.setPoints(solution.getPoints() + (bonus * ratio));
-                }
+            // Apply the bonus again if an adjacent word is present
+            if (adjacentSolution != null) {
+                bonus = isLetter ? lettersValue.getPoints().get(letter) : adjacentSolution.getPoints();
+                adjacentSolution.setPoints(adjacentSolution.getPoints() + (bonus * ratio));
             }
         }
     }

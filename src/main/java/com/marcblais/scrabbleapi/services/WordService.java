@@ -5,7 +5,10 @@ import com.marcblais.scrabbleapi.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class WordService {
@@ -35,11 +38,11 @@ public class WordService {
         dictionaryEntryRepo.save(dictionaryEntry);
     }
 
-    public List<DictionaryEntry> findAllEntries() {
-        return dictionaryEntryRepo.findAll();
+    public Set<DictionaryEntry> findAllEntries() {
+        return new HashSet<>(dictionaryEntryRepo.findAll());
     }
 
-    public List<DictionaryEntry> findWordsByLanguage(Language language) {
+    public Set<DictionaryEntry> findWordsByLanguage(Language language) {
         return dictionaryEntryRepo.findByLanguage(language);
     }
 
