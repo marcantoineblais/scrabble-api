@@ -24,6 +24,7 @@ public class WordController {
     }
 
     @GetMapping("/letters")
+    @CrossOrigin(origins = "http://localhost:3000")
     public Set<DictionaryEntry> findWordsWithLetters(@RequestParam(name = "letters") String playerLetters) {
         Language language = wordService.findLanguageById(1);
         Set<DictionaryEntry> entries = wordService.findWordsByLanguage(language);

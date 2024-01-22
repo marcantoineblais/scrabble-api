@@ -22,6 +22,9 @@ public class Grid {
     @ManyToOne
     private GridType gridType;
 
+    @ManyToOne
+    private Player player;
+
     public Grid() {
     }
 
