@@ -1,5 +1,6 @@
 package com.marcblais.scrabbleapi.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.marcblais.scrabbleapi.dto.GridContent;
 import jakarta.persistence.*;
@@ -23,6 +24,7 @@ public class Grid {
     private GridType gridType;
 
     @ManyToOne
+    @JsonIgnore
     private Player player;
 
     public Grid() {
@@ -80,6 +82,14 @@ public class Grid {
 
     public void setGridType(GridType gridType) {
         this.gridType = gridType;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 
     public List<GridContent> toGridContent() {

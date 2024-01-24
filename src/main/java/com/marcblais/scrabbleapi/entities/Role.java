@@ -1,15 +1,16 @@
 package com.marcblais.scrabbleapi.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import org.springframework.security.core.GrantedAuthority;
 
 @Entity
-public class Role implements GrantedAuthority {
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @ManyToOne
+    @JsonIgnore
     private Player player;
 
     @Column(length = 20)
@@ -18,15 +19,15 @@ public class Role implements GrantedAuthority {
     public Role() {
     }
 
-    public Role(long id, Player player, String name) {
-        this.id = id;
+    public Role(Player player, String name) {
         this.player = player;
         this.name = name;
     }
 
-    @Override
-    public String getAuthority() {
-        return name;
+    public Role(long id, Player player, String name) {
+        this.id = id;
+        this.player = player;
+        this.name = name;
     }
 
     public long getId() {
