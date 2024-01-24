@@ -24,7 +24,6 @@ public class WordController {
     }
 
     @GetMapping("/letters")
-    @CrossOrigin(origins = "http://localhost:3000")
     public Set<DictionaryEntry> findWordsWithLetters(@RequestParam(name = "letters") String playerLetters) {
         Language language = wordService.findLanguageById(1);
         Set<DictionaryEntry> entries = wordService.findWordsByLanguage(language);
@@ -35,9 +34,7 @@ public class WordController {
     }
 
     @PostMapping("/grid")
-    @CrossOrigin(origins = "http://localhost:3000")
     public List<Solution> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
-        long startTime = System.currentTimeMillis();
         LettersValue lettersValue = wordService.findLettersValueByLanguage(grid.getGridType().getLanguage());
         Set<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
@@ -45,9 +42,6 @@ public class WordController {
         Set<Solution> solutions = solutionsFinder.toSolutions();
         PointCalculator pointCalculator = new PointCalculator(grid, solutions, lettersValue);
         pointCalculator.calculatePoints();
-
-        long endTime = System.currentTimeMillis() - startTime;
-        System.out.println("\nRequest took " + endTime + "ms\n");
 
         return pointCalculator.findTopSolutions(10);
     }

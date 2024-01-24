@@ -1,10 +1,16 @@
 package com.marcblais.scrabbleapi.controllers;
 
+import com.marcblais.scrabbleapi.dto.LoginResponse;
+import com.marcblais.scrabbleapi.dto.PlayerLogin;
+import com.marcblais.scrabbleapi.encryption.PlayerToken;
 import com.marcblais.scrabbleapi.entities.Grid;
 import com.marcblais.scrabbleapi.entities.Player;
 import com.marcblais.scrabbleapi.entities.Role;
 import com.marcblais.scrabbleapi.services.LoginService;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,30 +23,48 @@ import java.util.List;
 @RestController
 public class LoginController {
     private LoginService loginService;
+    private PlayerToken playerToken;
 
     @Autowired
-
     public LoginController(LoginService loginService) {
         this.loginService = loginService;
+        this.playerToken = new PlayerToken();
     }
 
     @PostMapping("/login")
-    @CrossOrigin("http://localhost:3000")
-    public Player login(@RequestBody HashMap<String, String> credentials) {
-        return loginService.loadPlayerByUsername(credentials.get("username"), credentials.get("password"));
+    public LoginResponse login(@RequestBody PlayerLogin loginRequest) {
+        Player player = loginService.findPlayerByPlayerLogin(loginRequest);
+        if (player == null)
+            return null;
+
+        String token = playerToken.createJwtForPlayer(player.getUsername());
+        if (token == null)
+            return null;
+
+        return new LoginResponse(token, player);
     }
 
     @PostMapping("/signin")
-    @CrossOrigin("http://localhost:3000")
-    public Player signin(@RequestBody HashMap<String, String> credentials) {
-        Player player = new Player(
-                credentials.get("username"),
-                credentials.get("password")
-        );
+    public String signin(@RequestBody PlayerLogin loginRequest) {
+        Player player = new Player(loginRequest.getUsername(), loginRequest.getPassword());
 
         player.getRoles().add(new Role(player, "PLAYER"));
         loginService.savePlayer(player);
 
-        return player;
+        return "OK";
+    }
+
+    @PostMapping("/authenticate")
+    public LoginResponse authenticate(@RequestBody String token) {
+        String username = playerToken.getUsernameFromJwt(token);
+        if (username == null)
+            return null;
+
+        Player player = loginService.findPlayerByUsername(username);
+        if (player == null)
+            return null;
+
+        String updatedToken = playerToken.createJwtForPlayer(username);
+        return new LoginResponse(updatedToken, player);
     }
 }
