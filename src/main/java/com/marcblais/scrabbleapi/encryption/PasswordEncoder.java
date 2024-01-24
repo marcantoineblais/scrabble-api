@@ -3,7 +3,6 @@ package com.marcblais.scrabbleapi.encryption;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
-import java.util.Arrays;
 
 public class PasswordEncoder {
     public static String encode(String raw) {

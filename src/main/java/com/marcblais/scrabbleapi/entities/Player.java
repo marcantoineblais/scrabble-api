@@ -17,7 +17,7 @@ public class Player {
     private String password;
 
     @OneToMany
-    @JoinColumn
+    @JoinColumn(referencedColumnName = "username", name = "player_username")
     private List<Grid> grids;
 
     @OneToMany
