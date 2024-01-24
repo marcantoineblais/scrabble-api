@@ -14,6 +14,9 @@ public class Grid {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(length = 30)
+    private String name;
+
     @Column(length = 1000)
     private String grid;
 
@@ -23,17 +26,28 @@ public class Grid {
     @ManyToOne
     private GridType gridType;
 
-    @ManyToOne
+    @OneToOne
     @JsonIgnore
     private Player player;
 
     public Grid() {
     }
 
-    public Grid(String grid, String playerLetters, GridType gridType) {
+    public Grid(String name, String grid, String playerLetters, GridType gridType, Player player) {
+        this.name = name;
         this.grid = grid;
-        this.playerLetters = playerLetters.toUpperCase();
+        this.playerLetters = playerLetters;
         this.gridType = gridType;
+        this.player = player;
+    }
+
+    public Grid(long id, String name, String grid, String playerLetters, GridType gridType, Player player) {
+        this.id = id;
+        this.name = name;
+        this.grid = grid;
+        this.playerLetters = playerLetters;
+        this.gridType = gridType;
+        this.player = player;
     }
 
     public long getId() {
@@ -42,6 +56,14 @@ public class Grid {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String[][] getGrid() {
@@ -130,8 +152,10 @@ public class Grid {
     @Override
     public String toString() {
         return "Grid{" +
-                "grid=" + grid +
-                ", playerLetters=" + playerLetters +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", grid='" + grid + '\'' +
+                ", playerLetters='" + playerLetters + '\'' +
                 ", gridType=" + gridType +
                 '}';
     }

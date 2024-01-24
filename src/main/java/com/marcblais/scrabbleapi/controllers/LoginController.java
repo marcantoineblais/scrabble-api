@@ -3,22 +3,13 @@ package com.marcblais.scrabbleapi.controllers;
 import com.marcblais.scrabbleapi.dto.LoginResponse;
 import com.marcblais.scrabbleapi.dto.PlayerLogin;
 import com.marcblais.scrabbleapi.encryption.PlayerToken;
-import com.marcblais.scrabbleapi.entities.Grid;
 import com.marcblais.scrabbleapi.entities.Player;
 import com.marcblais.scrabbleapi.entities.Role;
 import com.marcblais.scrabbleapi.services.LoginService;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 @RestController
 public class LoginController {
@@ -55,16 +46,13 @@ public class LoginController {
     }
 
     @PostMapping("/authenticate")
-    public LoginResponse authenticate(@RequestBody String token) {
+    public Player authenticate(@RequestBody String token) {
+        System.out.println(token);
         String username = playerToken.getUsernameFromJwt(token);
+        System.out.println(username);
         if (username == null)
             return null;
 
-        Player player = loginService.findPlayerByUsername(username);
-        if (player == null)
-            return null;
-
-        String updatedToken = playerToken.createJwtForPlayer(username);
-        return new LoginResponse(updatedToken, player);
+        return loginService.findPlayerByUsername(username);
     }
 }
