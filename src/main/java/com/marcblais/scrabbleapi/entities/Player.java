@@ -1,19 +1,19 @@
 package com.marcblais.scrabbleapi.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-public class Player implements UserDetails {
+public class Player {
     @Id
     @Column(length = 50, unique = true)
     private String username;
 
-    @Column(length = 50)
+    @Column(length = 77, nullable = false)
+    @JsonIgnore
     private String password;
 
     @OneToMany
@@ -22,12 +22,20 @@ public class Player implements UserDetails {
 
     @OneToMany
     @JoinColumn(referencedColumnName = "username", name = "player_username")
+    @JsonIgnore
     private List<Role> roles;
 
     private boolean enabled;
-    private boolean active;
 
     public Player() {
+    }
+
+    public Player(String username, String password) {
+        this.username = username;
+        this.password = password;
+        this.grids = new ArrayList<>();
+        this.roles = new ArrayList<>();
+        this.enabled = false;
     }
 
     public Player(String username, String password, List<Grid> grids, List<Role> roles) {
@@ -35,40 +43,18 @@ public class Player implements UserDetails {
         this.password = password;
         this.grids = grids;
         this.roles = roles;
-        this.active = true;
         this.enabled = false;
     }
 
-    public Player(String username, String password, List<Grid> grids, List<Role> roles, boolean enabled, boolean active) {
+    public Player(String username, String password, List<Grid> grids, List<Role> roles, boolean enabled) {
         this.username = username;
         this.password = password;
         this.grids = grids;
         this.roles = roles;
         this.enabled = enabled;
-        this.active = active;
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles;
-    }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return false;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return false;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return false;
-    }
-
-    @Override
     public String getUsername() {
         return username;
     }
@@ -77,7 +63,6 @@ public class Player implements UserDetails {
         this.username = username;
     }
 
-    @Override
     public String getPassword() {
         return password;
     }
@@ -102,7 +87,6 @@ public class Player implements UserDetails {
         this.roles = roles;
     }
 
-    @Override
     public boolean isEnabled() {
         return enabled;
     }
@@ -111,11 +95,14 @@ public class Player implements UserDetails {
         this.enabled = enabled;
     }
 
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
+    @Override
+    public String toString() {
+        return "Player{" +
+                "username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", grids=" + grids +
+                ", roles=" + roles +
+                ", enabled=" + enabled +
+                '}';
     }
 }
