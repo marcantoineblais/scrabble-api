@@ -1,5 +1,6 @@
 package com.marcblais.scrabbleapi.services;
 
+import com.marcblais.scrabbleapi.dto.PlayerLogin;
 import com.marcblais.scrabbleapi.encryption.PasswordEncoder;
 import com.marcblais.scrabbleapi.entities.Player;
 import com.marcblais.scrabbleapi.repositories.PlayerRepo;
@@ -15,10 +16,15 @@ public class LoginService {
         this.playerRepo = playerRepo;
     }
 
-    public Player loadPlayerByUsername(String username, String password) {
-        Player player = playerRepo.findById(username).orElse(null);
+    public Player findPlayerByUsername(String username) {
+        return playerRepo.findById(username).orElse(null);
+    }
 
-        if (player != null && player.isEnabled() && PasswordEncoder.isEqual(password, player.getPassword()))
+    public Player findPlayerByPlayerLogin(PlayerLogin loginRequest) {
+        Player player = playerRepo.findById(loginRequest.getUsername()).orElse(null);
+
+        if (player != null && player.isEnabled() &&
+                PasswordEncoder.isEqual(loginRequest.getPassword(), player.getPassword()))
             return player;
 
         return null;
