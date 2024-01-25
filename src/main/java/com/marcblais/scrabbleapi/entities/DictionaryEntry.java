@@ -1,9 +1,8 @@
 package com.marcblais.scrabbleapi.entities;
 
-import com.marcblais.scrabbleapi.dto.LettersCounter;
+import com.marcblais.scrabbleapi.utilities.LettersCounter;
 import jakarta.persistence.*;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 

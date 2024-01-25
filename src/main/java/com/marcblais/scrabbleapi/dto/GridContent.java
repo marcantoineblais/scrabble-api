@@ -1,7 +1,6 @@
 package com.marcblais.scrabbleapi.dto;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GridContent {
     private String content;

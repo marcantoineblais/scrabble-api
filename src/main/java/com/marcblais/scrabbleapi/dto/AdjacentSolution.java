@@ -2,8 +2,6 @@ package com.marcblais.scrabbleapi.dto;
 
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 
-import java.util.List;
-
 public class AdjacentSolution {
     private DictionaryEntry entry;
     private int points;

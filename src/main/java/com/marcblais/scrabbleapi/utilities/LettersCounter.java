@@ -1,4 +1,4 @@
-package com.marcblais.scrabbleapi.dto;
+package com.marcblais.scrabbleapi.utilities;
 
 import java.util.HashMap;
 import java.util.Map;

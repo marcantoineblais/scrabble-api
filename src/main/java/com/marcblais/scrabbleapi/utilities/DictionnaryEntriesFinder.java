@@ -1,12 +1,9 @@
-package com.marcblais.scrabbleapi.dto;
+package com.marcblais.scrabbleapi.utilities;
 
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DictionnaryEntriesFinder {
