@@ -1,8 +1,11 @@
-package com.marcblais.scrabbleapi.dto;
+package com.marcblais.scrabbleapi.utilities;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.marcblais.scrabbleapi.dto.AdjacentSolution;
+import com.marcblais.scrabbleapi.dto.GridContent;
+import com.marcblais.scrabbleapi.dto.Solution;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 import com.marcblais.scrabbleapi.entities.Grid;
 
@@ -10,14 +13,17 @@ public class SolutionsFinder {
     private Grid grid;
     private Set<DictionaryEntry> entries;
     private List<GridContent> gridContents;
+    private final Map<String, Set<DictionaryEntry>> foundEntriesMap;
 
     public SolutionsFinder() {
+        this.foundEntriesMap = new HashMap<>();
     }
 
     public SolutionsFinder(Grid grid, Set<DictionaryEntry> entries, List<GridContent> gridContents) {
         this.grid = grid;
         this.entries = entries;
         this.gridContents = gridContents;
+        this.foundEntriesMap = new HashMap<>();
     }
 
     public Set<Solution> toSolutions() {
@@ -38,11 +44,10 @@ public class SolutionsFinder {
     }
 
     private List<Solution> findSolutionsForGridContent(
-           GridContent gridContent, GridContent oldGridContent, AdjacentSolution adjacentSolution, String ignoredLetter
+            GridContent gridContent, GridContent oldGridContent, AdjacentSolution adjacentSolution, String ignoredLetter
     ) {
         List<Solution> solutions = new ArrayList<>();
         List<Thread> threads = new ArrayList<>();
-        Map<String, Set<DictionaryEntry>> foundEntriesMap = new HashMap<>();
 
         // Get a list of regexp pattern to find words, sorted by index of grid content characters array
         Map<Integer, List<String>> testPatterns = gridContent.testPatterns();

@@ -2,8 +2,6 @@ package com.marcblais.scrabbleapi.dto;
 
 import com.marcblais.scrabbleapi.entities.Player;
 
-import java.util.List;
-
 public class LoginResponse {
     private String token;
     private Player player;

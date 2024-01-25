@@ -47,9 +47,7 @@ public class LoginController {
 
     @PostMapping("/authenticate")
     public Player authenticate(@RequestBody String token) {
-        System.out.println(token);
         String username = playerToken.getUsernameFromJwt(token);
-        System.out.println(username);
         if (username == null)
             return null;
 

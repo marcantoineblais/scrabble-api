@@ -1,9 +1,7 @@
 package com.marcblais.scrabbleapi.dto;
 
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
-import com.marcblais.scrabbleapi.entities.Grid;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 

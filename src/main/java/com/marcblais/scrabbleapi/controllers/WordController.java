@@ -6,7 +6,9 @@ import com.marcblais.scrabbleapi.entities.Language;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 import com.marcblais.scrabbleapi.entities.LettersValue;
 import com.marcblais.scrabbleapi.services.WordService;
-import jakarta.annotation.PostConstruct;
+import com.marcblais.scrabbleapi.utilities.DictionnaryEntriesFinder;
+import com.marcblais.scrabbleapi.utilities.PointCalculator;
+import com.marcblais.scrabbleapi.utilities.SolutionsFinder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
