@@ -5,7 +5,7 @@ import com.marcblais.scrabbleapi.entities.Grid;
 import com.marcblais.scrabbleapi.entities.Language;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 import com.marcblais.scrabbleapi.entities.LettersValue;
-import com.marcblais.scrabbleapi.services.WordService;
+import com.marcblais.scrabbleapi.services.GameService;
 import com.marcblais.scrabbleapi.utilities.DictionnaryEntriesFinder;
 import com.marcblais.scrabbleapi.utilities.PointCalculator;
 import com.marcblais.scrabbleapi.utilities.SolutionsFinder;
@@ -16,19 +16,19 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-public class WordController {
+public class GameController {
 
-    private WordService wordService;
+    private GameService gameService;
 
     @Autowired
-    public WordController(WordService wordService) {
-        this.wordService = wordService;
+    public GameController(GameService gameService) {
+        this.gameService = gameService;
     }
 
     @GetMapping("/letters")
     public Set<DictionaryEntry> findWordsWithLetters(@RequestParam(name = "letters") String playerLetters) {
-        Language language = wordService.findLanguageById(1);
-        Set<DictionaryEntry> entries = wordService.findWordsByLanguage(language);
+        Language language = gameService.findLanguageById(1);
+        Set<DictionaryEntry> entries = gameService.findWordsByLanguage(language);
         Set<DictionaryEntry> matchingEntries =
                 DictionnaryEntriesFinder.findEntriesByPlayerLetters(playerLetters.toUpperCase(), entries);
 
@@ -37,8 +37,8 @@ public class WordController {
 
     @PostMapping("/grid")
     public List<Solution> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
-        LettersValue lettersValue = wordService.findLettersValueByLanguage(grid.getLanguage());
-        Set<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getLanguage());
+        LettersValue lettersValue = gameService.findLettersValueByLanguage(grid.getLanguage());
+        Set<DictionaryEntry> entries = gameService.findWordsByLanguage(grid.getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
         SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
         Set<Solution> solutions = solutionsFinder.toSolutions();
