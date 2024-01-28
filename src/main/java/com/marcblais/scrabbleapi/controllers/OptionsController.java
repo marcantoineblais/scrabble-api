@@ -28,7 +28,7 @@ public class OptionsController {
 
         languages.sort(Comparator.comparingLong(Language::getId));
         gridTypes.sort(Comparator.comparingLong(GridType::getId));
-        
+
         return new GameOptions(languages, gridTypes);
     }
 }

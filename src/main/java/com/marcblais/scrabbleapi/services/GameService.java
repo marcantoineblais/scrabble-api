@@ -6,12 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
-public class WordService {
+public class GameService {
 
     private final DictionaryEntryRepo dictionaryEntryRepo;
     private final LanguageRepo languageRepo;
@@ -20,7 +18,7 @@ public class WordService {
     private final GridTypeRepo gridTypeRepo;
 
     @Autowired
-    public WordService(
+    public GameService(
             DictionaryEntryRepo dictionaryEntryRepo,
             LanguageRepo languageRepo,
             PointsRepo pointsRepo,
