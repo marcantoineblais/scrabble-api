@@ -26,6 +26,9 @@ public class Grid {
     @ManyToOne
     private GridType gridType;
 
+    @ManyToOne
+    private Language language;
+
     @OneToOne
     @JsonIgnore
     private Player player;
@@ -33,20 +36,22 @@ public class Grid {
     public Grid() {
     }
 
-    public Grid(String name, String grid, String playerLetters, GridType gridType, Player player) {
+    public Grid(String name, String grid, String playerLetters, GridType gridType, Language language, Player player) {
         this.name = name;
         this.grid = grid;
         this.playerLetters = playerLetters;
         this.gridType = gridType;
+        this.language = language;
         this.player = player;
     }
 
-    public Grid(long id, String name, String grid, String playerLetters, GridType gridType, Player player) {
+    public Grid(long id, String name, String grid, String playerLetters, GridType gridType, Language language, Player player) {
         this.id = id;
         this.name = name;
         this.grid = grid;
         this.playerLetters = playerLetters;
         this.gridType = gridType;
+        this.language = language;
         this.player = player;
     }
 
@@ -106,6 +111,14 @@ public class Grid {
         this.gridType = gridType;
     }
 
+    public Language getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(Language language) {
+        this.language = language;
+    }
+
     public Player getPlayer() {
         return player;
     }
@@ -157,6 +170,7 @@ public class Grid {
                 ", grid='" + grid + '\'' +
                 ", playerLetters='" + playerLetters + '\'' +
                 ", gridType=" + gridType +
+                ", language=" + language +
                 '}';
     }
 }

@@ -37,8 +37,8 @@ public class WordController {
 
     @PostMapping("/grid")
     public List<Solution> findWordsThatFitsOnGrid(@RequestBody Grid grid) {
-        LettersValue lettersValue = wordService.findLettersValueByLanguage(grid.getGridType().getLanguage());
-        Set<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getGridType().getLanguage());
+        LettersValue lettersValue = wordService.findLettersValueByLanguage(grid.getLanguage());
+        Set<DictionaryEntry> entries = wordService.findWordsByLanguage(grid.getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
         SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
         Set<Solution> solutions = solutionsFinder.toSolutions();

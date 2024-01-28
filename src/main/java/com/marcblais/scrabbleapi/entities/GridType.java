@@ -11,9 +11,6 @@ public class GridType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id;
 
-    @ManyToOne
-    private Language language;
-
     private String doubleLetter;
     private String tripleLetter;
     private String doubleWord;
@@ -22,9 +19,8 @@ public class GridType {
     public GridType() {
     }
 
-    public GridType(long id, Language language, String doubleLetter, String tripleLetter, String doubleWord, String tripleWord) {
+    public GridType(long id, String doubleLetter, String tripleLetter, String doubleWord, String tripleWord) {
         this.id = id;
-        this.language = language;
         this.doubleLetter = doubleLetter;
         this.tripleLetter = tripleLetter;
         this.doubleWord = doubleWord;
@@ -37,14 +33,6 @@ public class GridType {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    public Language getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(Language language) {
-        this.language = language;
     }
 
     public int[][] getDoubleLetter() {
@@ -147,7 +135,6 @@ public class GridType {
     public String toString() {
         return "GridType{" +
                 "id=" + id +
-                ", language=" + language +
                 ", doubleLetter=" + doubleLetter +
                 ", tripleLetter=" + tripleLetter +
                 ", doubleWord=" + doubleWord +
