@@ -7,12 +7,12 @@ import java.util.List;
 
 public class GameOptions {
     private List<Language> languages;
-    private List<GridType> gridTypes;
+    private List<GridTypeDTO> gridTypes;
 
     public GameOptions() {
     }
 
-    public GameOptions(List<Language> languages, List<GridType> gridTypes) {
+    public GameOptions(List<Language> languages, List<GridTypeDTO> gridTypes) {
         this.languages = languages;
         this.gridTypes = gridTypes;
     }
@@ -25,11 +25,11 @@ public class GameOptions {
         this.languages = languages;
     }
 
-    public List<GridType> getGridTypes() {
+    public List<GridTypeDTO> getGridTypes() {
         return gridTypes;
     }
 
-    public void setGridTypes(List<GridType> gridTypes) {
+    public void setGridTypes(List<GridTypeDTO> gridTypes) {
         this.gridTypes = gridTypes;
     }
 }

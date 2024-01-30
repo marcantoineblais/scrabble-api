@@ -5,12 +5,13 @@ import java.util.stream.Collectors;
 
 import com.marcblais.scrabbleapi.dto.AdjacentSolution;
 import com.marcblais.scrabbleapi.dto.GridContent;
+import com.marcblais.scrabbleapi.dto.GridDTO;
 import com.marcblais.scrabbleapi.dto.Solution;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 import com.marcblais.scrabbleapi.entities.Grid;
 
 public class SolutionsFinder {
-    private Grid grid;
+    private GridDTO grid;
     private Set<DictionaryEntry> entries;
     private List<GridContent> gridContents;
     private final Map<String, Set<DictionaryEntry>> foundEntriesMap;
@@ -19,7 +20,7 @@ public class SolutionsFinder {
         this.foundEntriesMap = new HashMap<>();
     }
 
-    public SolutionsFinder(Grid grid, Set<DictionaryEntry> entries, List<GridContent> gridContents) {
+    public SolutionsFinder(GridDTO grid, Set<DictionaryEntry> entries, List<GridContent> gridContents) {
         this.grid = grid;
         this.entries = entries;
         this.gridContents = gridContents;

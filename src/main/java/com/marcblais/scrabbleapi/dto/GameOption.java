@@ -4,24 +4,24 @@ import com.marcblais.scrabbleapi.entities.GridType;
 import com.marcblais.scrabbleapi.entities.Language;
 
 public class GameOption {
-    private GridType gridType;
+    private GridTypeDTO gridType;
     private Language language;
     private String name;
 
     public GameOption() {
     }
 
-    public GameOption(GridType gridType, Language language, String name) {
+    public GameOption(GridTypeDTO gridType, Language language, String name) {
         this.gridType = gridType;
         this.language = language;
         this.name = name;
     }
 
-    public GridType getGridType() {
+    public GridTypeDTO getGridType() {
         return gridType;
     }
 
-    public void setGridType(GridType gridType) {
+    public void setGridType(GridTypeDTO gridType) {
         this.gridType = gridType;
     }
 

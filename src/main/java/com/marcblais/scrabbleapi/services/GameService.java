@@ -1,5 +1,6 @@
 package com.marcblais.scrabbleapi.services;
 
+import com.marcblais.scrabbleapi.dto.GridDTO;
 import com.marcblais.scrabbleapi.entities.*;
 import com.marcblais.scrabbleapi.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,12 +44,8 @@ public class GameService {
         return pointsRepo.findByLanguage(language);
     }
 
-    public void saveGrid(Grid grid) {
-        gridRepo.save(grid);
-    }
-
-    public Grid findGridById(long id) {
-        return gridRepo.findById(id).orElse(null);
+    public void saveGrid(GridDTO grid) {
+        gridRepo.save(grid.toGrid());
     }
 
     public Player findPlayerByUsername(String username) {

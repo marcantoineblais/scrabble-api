@@ -1,6 +1,7 @@
 package com.marcblais.scrabbleapi.utilities;
 
 import com.marcblais.scrabbleapi.dto.AdjacentSolution;
+import com.marcblais.scrabbleapi.dto.GridDTO;
 import com.marcblais.scrabbleapi.dto.Solution;
 import com.marcblais.scrabbleapi.entities.Grid;
 import com.marcblais.scrabbleapi.entities.LettersValue;
@@ -10,14 +11,14 @@ import java.util.List;
 import java.util.Set;
 
 public class PointCalculator {
-    private Grid grid;
+    private GridDTO grid;
     private Set<Solution> solutions;
     private LettersValue lettersValue;
 
     public PointCalculator() {
     }
 
-    public PointCalculator(Grid grid, Set<Solution> solutions, LettersValue lettersValue) {
+    public PointCalculator(GridDTO grid, Set<Solution> solutions, LettersValue lettersValue) {
         this.grid = grid;
         this.solutions = solutions;
         this.lettersValue = lettersValue;

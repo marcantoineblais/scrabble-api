@@ -1,6 +1,8 @@
 package com.marcblais.scrabbleapi.entities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.marcblais.scrabbleapi.dto.GameOptions;
+import com.marcblais.scrabbleapi.dto.GridTypeDTO;
 import jakarta.persistence.*;
 
 import java.util.Arrays;
@@ -27,12 +29,12 @@ public class GridType {
         this.tripleWord = tripleWord;
     }
 
-    public GridType(long id, int[][] doubleLetter, int[][] tripleLetter, int[][] doubleWord, int[][] tripleWord) {
-        this.id = id;
-        setDoubleLetter(doubleLetter);
-        setTripleLetter(tripleLetter);
-        setDoubleWord(doubleWord);
-        setTripleWord(tripleWord);
+    public GridType(GridTypeDTO gridType) {
+        this.id = gridType.getId();
+        this.doubleLetter = gridType.bonusToString(gridType.getDoubleLetter());
+        this.tripleLetter = gridType.bonusToString(gridType.getTripleLetter());
+        this.doubleWord = gridType.bonusToString(gridType.getDoubleWord());
+        this.tripleWord = gridType.bonusToString(gridType.getTripleWord());
     }
 
     public long getId() {
@@ -43,100 +45,50 @@ public class GridType {
         this.id = id;
     }
 
-    public int[][] getDoubleLetter() {
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            return mapper.readValue(doubleLetter, int[][].class);
-        } catch (Exception ex) {
-            return new int[][]{};
-        }
+    public String getDoubleLetter() {
+        return doubleLetter;
     }
 
     public void setDoubleLetter(String doubleLetter) {
         this.doubleLetter = doubleLetter;
     }
 
-    public void setDoubleLetter(int[][] doubleLetter) {
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            setDoubleLetter(mapper.writeValueAsString(doubleLetter));
-        } catch (Exception ex) {
-            return;
-        }
-    }
-
-    public int[][] getTripleLetter() {
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            return mapper.readValue(tripleLetter, int[][].class);
-        } catch (Exception ex) {
-            return new int[][]{};
-        }
+    public String getTripleLetter() {
+        return tripleLetter;
     }
 
     public void setTripleLetter(String tripleLetter) {
         this.tripleLetter = tripleLetter;
     }
 
-    public void setTripleLetter(int[][] tripleLetter) {
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            setTripleLetter(mapper.writeValueAsString(doubleLetter));
-        } catch (Exception ex) {
-            return;
-        }
-    }
-
-    public int[][] getDoubleWord() {
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            return mapper.readValue(doubleWord, int[][].class);
-        } catch (Exception ex) {
-            return new int[][]{};
-        }
+    public String getDoubleWord() {
+        return doubleWord;
     }
 
     public void setDoubleWord(String doubleWord) {
         this.doubleWord = doubleWord;
     }
 
-    public void setDoubleWord(int[][] doubleWord) {
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            setDoubleWord(mapper.writeValueAsString(doubleLetter));
-        } catch (Exception ex) {
-            return;
-        }
-    }
-
-    public int[][] getTripleWord() {
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            return mapper.readValue(tripleWord, int[][].class);
-        } catch (Exception ex) {
-            return new int[][]{};
-        }
+    public String getTripleWord() {
+        return tripleWord;
     }
 
     public void setTripleWord(String tripleWord) {
         this.tripleWord = tripleWord;
     }
 
-    public void setTripleWord(int[][] tripleWord) {
+    public int[][] bonusToIntArray(String bonus) {
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            setTripleWord(mapper.writeValueAsString(doubleLetter));
+            return mapper.readValue(bonus, int[][].class);
         } catch (Exception ex) {
-            return;
+            return new int[][]{};
         }
+    }
+
+    public GridTypeDTO toGridTypeDTO() {
+        return new GridTypeDTO(this);
     }
 
     @Override
