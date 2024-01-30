@@ -45,22 +45,21 @@ public class GameController {
 
     @PostMapping("/grid/new")
     public ResponseEntity<Grid> createGrid(
-            @CookieValue("token") String token,
             @RequestBody GameOption gameOption
     ) {
-        Player player = findPlayer(token);
-        ResponseEntity<Grid> responseEntity = playerLoggedIn(player);
+        System.out.println(gameOption);
+//        Player player = findPlayer(token);
+//        ResponseEntity<Grid> responseEntity = playerLoggedIn(player);
 
-        if (responseEntity != null)
-            return responseEntity;
+//        if (responseEntity != null)
+//            return responseEntity;
 
         Grid grid = new Grid();
         grid.buildGrid();
         grid.setGridType(gameOption.getGridType());
         grid.setLanguage(gameOption.getLanguage());
         grid.setName(gameOption.getName());
-        System.out.println(gameOption.getName());
-
+        System.out.println(grid);
 //        gameService.saveGrid(grid);
         return new ResponseEntity<>(grid, HttpStatus.OK);
     }
@@ -70,7 +69,6 @@ public class GameController {
             @CookieValue(value = "token", required = false) String token,
             @RequestBody Grid grid
     ) {
-
         Player player = findPlayer(token);
         ResponseEntity<List<Solution>> responseEntity = playerLoggedIn(player);
 

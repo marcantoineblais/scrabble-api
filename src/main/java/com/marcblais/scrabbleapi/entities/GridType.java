@@ -27,6 +27,14 @@ public class GridType {
         this.tripleWord = tripleWord;
     }
 
+    public GridType(long id, int[][] doubleLetter, int[][] tripleLetter, int[][] doubleWord, int[][] tripleWord) {
+        this.id = id;
+        setDoubleLetter(doubleLetter);
+        setTripleLetter(tripleLetter);
+        setDoubleWord(doubleWord);
+        setTripleWord(tripleWord);
+    }
+
     public long getId() {
         return id;
     }
