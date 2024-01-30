@@ -1,5 +1,6 @@
 package com.marcblais.scrabbleapi.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.marcblais.scrabbleapi.entities.Grid;
 import com.marcblais.scrabbleapi.entities.Language;
@@ -16,6 +17,8 @@ public class GridDTO {
     private String playerLetters;
     private GridTypeDTO gridType;
     private Language language;
+
+    @JsonIgnore
     private Player player;
 
     public GridDTO() {
