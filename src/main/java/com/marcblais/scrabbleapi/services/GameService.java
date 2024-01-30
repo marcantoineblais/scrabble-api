@@ -16,6 +16,7 @@ public class GameService {
     private final PointsRepo pointsRepo;
     private final GridRepo gridRepo;
     private final GridTypeRepo gridTypeRepo;
+    private final PlayerRepo playerRepo;
 
     @Autowired
     public GameService(
@@ -23,37 +24,19 @@ public class GameService {
             LanguageRepo languageRepo,
             PointsRepo pointsRepo,
             GridRepo gridRepo,
-            GridTypeRepo gridTypeRepo
+            GridTypeRepo gridTypeRepo,
+            PlayerRepo playerRepo
     ) {
         this.dictionaryEntryRepo = dictionaryEntryRepo;
         this.languageRepo = languageRepo;
         this.pointsRepo = pointsRepo;
         this.gridRepo = gridRepo;
         this.gridTypeRepo = gridTypeRepo;
-    }
-
-    public void saveWord(DictionaryEntry dictionaryEntry) {
-        dictionaryEntryRepo.save(dictionaryEntry);
-    }
-
-    public Set<DictionaryEntry> findAllEntries() {
-        return new HashSet<>(dictionaryEntryRepo.findAll());
+        this.playerRepo = playerRepo;
     }
 
     public Set<DictionaryEntry> findWordsByLanguage(Language language) {
         return dictionaryEntryRepo.findByLanguage(language);
-    }
-
-    public void saveLanguage(Language language) {
-        languageRepo.save(language);
-    }
-
-    public Language findLanguageById(long id) {
-        return languageRepo.findById(id).orElse(null);
-    }
-
-    public void saveLettersValue(LettersValue lettersValue) {
-        pointsRepo.save(lettersValue);
     }
 
     public LettersValue findLettersValueByLanguage(Language language) {
@@ -64,11 +47,15 @@ public class GameService {
         gridRepo.save(grid);
     }
 
-    public void saveGridType(GridType gridType) {
-        gridTypeRepo.save(gridType);
-    }
-
     public Grid findGridById(long id) {
         return gridRepo.findById(id).orElse(null);
+    }
+
+    public Player findPlayerByUsername(String username) {
+        return playerRepo.findById(username).orElse(null);
+    }
+
+    public Language findLanguageByName(String name) {
+        return languageRepo.findByName(name).orElse(null);
     }
 }

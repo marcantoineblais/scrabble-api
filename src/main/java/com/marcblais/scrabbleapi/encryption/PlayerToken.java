@@ -11,7 +11,7 @@ import java.util.Date;
 public class PlayerToken {
     private static final String SECRET = "this is my secret key";
 
-    public String createJwtForPlayer(String username) {
+    public static String createJwtForPlayer(String username) {
         Algorithm algorithm = Algorithm.HMAC256(SECRET);
 
         return JWT.create()
@@ -21,7 +21,7 @@ public class PlayerToken {
                 .sign(algorithm);
     }
 
-    public String getUsernameFromJwt(String token) {
+    public static String getUsernameFromJwt(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET);
             JWTVerifier verifier = JWT.require(algorithm).withIssuer("scrabble cheetah").build();
