@@ -44,22 +44,23 @@ public class GameController {
     }
 
     @PostMapping("/grid/new")
-    public ResponseEntity<Grid> createGrid(
+    public ResponseEntity<GridDTO> createGrid(
+            @CookieValue(value = "token", required = false) String token,
             @RequestBody GameOption gameOption
     ) {
         System.out.println(gameOption);
-//        Player player = findPlayer(token);
-//        ResponseEntity<Grid> responseEntity = playerLoggedIn(player);
+        Player player = findPlayer(token);
+        ResponseEntity<GridDTO> responseEntity = playerLoggedIn(player);
 
-//        if (responseEntity != null)
-//            return responseEntity;
+        if (responseEntity != null)
+            return responseEntity;
 
-        Grid grid = new Grid();
+        GridDTO grid = new GridDTO();
         grid.buildGrid();
         grid.setGridType(gameOption.getGridType());
         grid.setLanguage(gameOption.getLanguage());
         grid.setName(gameOption.getName());
-        System.out.println(grid);
+        grid.setPlayer(player);
 //        gameService.saveGrid(grid);
         return new ResponseEntity<>(grid, HttpStatus.OK);
     }
@@ -67,7 +68,7 @@ public class GameController {
     @PostMapping("/grid/solve")
     public ResponseEntity<List<Solution>> findWordsThatFitsOnGrid(
             @CookieValue(value = "token", required = false) String token,
-            @RequestBody Grid grid
+            @RequestBody GridDTO grid
     ) {
         Player player = findPlayer(token);
         ResponseEntity<List<Solution>> responseEntity = playerLoggedIn(player);
