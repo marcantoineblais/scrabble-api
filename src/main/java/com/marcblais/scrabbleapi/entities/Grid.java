@@ -6,6 +6,7 @@ import com.marcblais.scrabbleapi.dto.GridContent;
 import jakarta.persistence.*;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 @Entity
 public class Grid {
@@ -125,6 +126,16 @@ public class Grid {
 
     public void setPlayer(Player player) {
         this.player = player;
+    }
+
+    public void buildGrid() {
+        String[] cols = new String[15];
+        String[] rows = new String[15];
+
+        Arrays.fill(cols, "");
+        Arrays.fill(rows, Arrays.toString(cols));
+
+        this.grid = Arrays.toString(rows);
     }
 
     public List<GridContent> toGridContent() {
