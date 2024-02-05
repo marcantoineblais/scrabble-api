@@ -8,7 +8,6 @@ import com.marcblais.scrabbleapi.dto.GridContent;
 import com.marcblais.scrabbleapi.dto.GridDTO;
 import com.marcblais.scrabbleapi.dto.Solution;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
-import com.marcblais.scrabbleapi.entities.Grid;
 
 public class SolutionsFinder {
     private GridDTO grid;
@@ -140,7 +139,11 @@ public class SolutionsFinder {
     private Set<Solution> findParallelSolution(Set<Solution> solutions) {
         Set<Solution> parallelSolutions = new HashSet<>();
         Set<Solution> solutionsToTest = solutions.stream()
-                .filter(s -> s.getEntry().getWord().length() == 2 && s.getAdjacentSolutions().isEmpty())
+                .filter(s -> {
+                    int wordLength = s.getEntry().getWord().length();
+                    int nbLettersUsed = wordLength - s.getPattern().replace(".", "").length();
+                    return nbLettersUsed == 1 && s.getAdjacentSolutions().isEmpty();
+                })
                 .collect(Collectors.toSet());
 
         for (Solution solution : solutionsToTest) {
