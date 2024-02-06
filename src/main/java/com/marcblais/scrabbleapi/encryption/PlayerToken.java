@@ -17,7 +17,6 @@ public class PlayerToken {
         return JWT.create()
                 .withIssuer("scrabble cheetah")
                 .withClaim("username", username)
-                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 30)) // 30 minutes
                 .sign(algorithm);
     }
 
