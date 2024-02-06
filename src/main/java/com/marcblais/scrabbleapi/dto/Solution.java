@@ -1,5 +1,6 @@
 package com.marcblais.scrabbleapi.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 
 import java.util.Map;
@@ -7,8 +8,13 @@ import java.util.Objects;
 
 public class Solution implements Comparable<Solution> {
     private DictionaryEntry entry;
+    @JsonIgnore
     private GridContent gridContent;
+
+    @JsonIgnore
     private Map<Integer, AdjacentSolution> adjacentSolutions;
+
+    @JsonIgnore
     private String pattern;
     private boolean vertical;
     private int x;
