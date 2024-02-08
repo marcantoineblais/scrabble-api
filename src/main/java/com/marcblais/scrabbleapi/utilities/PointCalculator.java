@@ -26,18 +26,22 @@ public class PointCalculator {
 
     public List<Solution> findTopSolutions(int size) {
         List<Solution> bestSolutions = new ArrayList<>();
+        Solution minPoints = null;
 
         for (Solution solution : solutions) {
-            Solution minPoints = bestSolutions.stream().min(Solution::compareTo).orElse(new Solution());
 
-            if (bestSolutions.size() < size || solution.compareTo(minPoints) < 0) {
+
+            if (minPoints == null || solution.compareTo(minPoints) < 0) {
                 bestSolutions.add(solution);
 
-                if (bestSolutions.size() > size)
+                if (bestSolutions.size() > size) {
                     bestSolutions.remove(minPoints);
+                    minPoints = bestSolutions.stream().max(Solution::compareTo).orElse(null);
+                }
             }
         }
-
+        
+        bestSolutions.remove(minPoints);
         bestSolutions.sort(Solution::compareTo);
         return bestSolutions;
     }
