@@ -88,7 +88,7 @@ public class PointCalculator {
 
             // Add the bonus if player has a Scrabble
             if (letterUsed == 7)
-                solution.setPoints(solution.getPoints() + 50);
+                solution.setPoints(solution.getPoints() + lettersValue.getPoints().get("*"));
         }
     }
 

@@ -46,7 +46,7 @@ public class GridContent {
         this.vertical = vertical;
     }
 
-    public Map<Integer, List<String>> testPatterns() {
+    public Map<Integer, List<String>> testPatterns(String playerLetters) {
         Map<Integer, List<String>> patternsMap = new HashMap<>();
         char[] contentCharArray = content.toCharArray();
 
@@ -54,7 +54,7 @@ public class GridContent {
             List<String> patterns = new ArrayList<>();
             StringBuilder builder = new StringBuilder();
             boolean containsLetter = false;
-            int remainingLetters = 7;
+            int remainingLetters = playerLetters.length();
             int startIndex = i;
 
             if (contentCharArray[i] != '.') {
