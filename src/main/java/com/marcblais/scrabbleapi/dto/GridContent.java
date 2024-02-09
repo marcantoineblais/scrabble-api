@@ -57,6 +57,7 @@ public class GridContent {
             int remainingLetters = playerLetters.length();
             int startIndex = i;
 
+            // Add every letters until reaching a blank space
             if (contentCharArray[i] != '.') {
                 while (i < contentCharArray.length && contentCharArray[i] != '.') {
                     builder.append(contentCharArray[i++]);
@@ -67,6 +68,7 @@ public class GridContent {
 
             int j = i;
 
+            // Add every pattern that contains at least one letter, every loop adds a new character to the pattern until max length is reached
             while (remainingLetters > 0 && j < contentCharArray.length) {
                 builder.append(contentCharArray[j]);
 
@@ -80,16 +82,21 @@ public class GridContent {
                     containsLetter = true;
                 }
 
-                if (
-                        containsLetter &&
-                        (
-                                (j < contentCharArray.length - 1 && contentCharArray[j + 1] == '.') ||
-                                j == contentCharArray.length - 1
-                        )
-                )
+                if (containsLetter && ((j < contentCharArray.length - 1 && contentCharArray[j + 1] == '.') ||
+                                j == contentCharArray.length - 1))
                     patterns.add(builder.toString());
 
                 j++;
+            }
+
+            if (remainingLetters == 0 && j < contentCharArray.length && contentCharArray[j] != '.') {
+                builder.append(contentCharArray[j]);
+
+                while (j < contentCharArray.length - 1 && contentCharArray[j + 1] != '.') {
+                    builder.append(contentCharArray[++j]);
+                }
+                
+                patterns.add(builder.toString());
             }
 
             if (!patterns.isEmpty())

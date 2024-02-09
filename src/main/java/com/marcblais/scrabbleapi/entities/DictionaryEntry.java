@@ -3,6 +3,8 @@ package com.marcblais.scrabbleapi.entities;
 import com.marcblais.scrabbleapi.utilities.LettersCounter;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -16,10 +18,11 @@ public class DictionaryEntry {
     @Column(length = 50)
     private String word;
 
-    @ManyToOne
-    private Language language;
+    @ManyToMany
+    private List<Language> languages;
 
     public DictionaryEntry() {
+        this.languages = new ArrayList<>();
     }
 
     public DictionaryEntry(String word) {
@@ -29,6 +32,12 @@ public class DictionaryEntry {
     public DictionaryEntry(long id, String word) {
         this.id = id;
         this.word = word;
+    }
+
+    public DictionaryEntry(long id, String word, List<Language> languages) {
+        this.id = id;
+        this.word = word;
+        this.languages = languages;
     }
 
     public long getId() {
@@ -47,12 +56,12 @@ public class DictionaryEntry {
         this.word = word;
     }
 
-    public Language getLanguage() {
-        return language;
+    public List<Language> getLanguages() {
+        return languages;
     }
 
-    public void setLanguage(Language language) {
-        this.language = language;
+    public void setLanguage(List<Language> languages) {
+        this.languages = languages;
     }
 
     public Map<String, Integer> getLetters() {
@@ -76,7 +85,7 @@ public class DictionaryEntry {
         return "Word{" +
                 "id=" + id +
                 ", word='" + word + '\'' +
-                ", language=" + language +
+                ", language=" + languages +
                 '}';
     }
 }

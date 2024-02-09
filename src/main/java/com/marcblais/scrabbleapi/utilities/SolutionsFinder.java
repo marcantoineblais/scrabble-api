@@ -50,7 +50,7 @@ public class SolutionsFinder {
         List<Thread> threads = new ArrayList<>();
 
         // Get a list of regexp pattern to find words, sorted by index of grid content characters array
-        Map<Integer, List<String>> testPatterns =findOverlappingString()
+        Map<Integer, List<String>> testPatterns =
                 gridContent.testPatterns(grid.getPlayerLetters().replaceFirst(ignoredLetter, ""));
 
         if (oldGridContent != null) {

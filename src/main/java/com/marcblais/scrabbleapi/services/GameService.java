@@ -37,7 +37,7 @@ public class GameService {
     }
 
     public Set<DictionaryEntry> findWordsByLanguage(Language language) {
-        return dictionaryEntryRepo.findByLanguage(language);
+        return dictionaryEntryRepo.findByLanguages(language);
     }
 
     public LettersValue findLettersValueByLanguage(Language language) {

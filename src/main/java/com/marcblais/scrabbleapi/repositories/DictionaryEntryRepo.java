@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Set;
 
 public interface DictionaryEntryRepo extends JpaRepository<DictionaryEntry, Long> {
-    public Set<DictionaryEntry> findByLanguage(Language language);
+    public Set<DictionaryEntry> findByLanguages(Language language);
 }
