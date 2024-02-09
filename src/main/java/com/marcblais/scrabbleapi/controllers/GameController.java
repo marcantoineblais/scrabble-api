@@ -7,8 +7,6 @@ import com.marcblais.scrabbleapi.services.GameService;
 import com.marcblais.scrabbleapi.utilities.DictionnaryEntriesFinder;
 import com.marcblais.scrabbleapi.utilities.PointCalculator;
 import com.marcblais.scrabbleapi.utilities.SolutionsFinder;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.Arrays;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -44,26 +42,86 @@ public class GameController {
     }
 
     @PostMapping("/grid/new")
-    public ResponseEntity<GridDTO> createGrid(
+    public ResponseEntity<PlayerDTO> createGrid(
             @CookieValue(value = "token", required = false) String token,
             @RequestBody GameOption gameOption
     ) {
-        System.out.println(gameOption);
         Player player = findPlayer(token);
-        ResponseEntity<GridDTO> responseEntity = playerLoggedIn(player);
+        ResponseEntity<PlayerDTO> responseEntity = playerLoggedIn(player);
 
         if (responseEntity != null)
             return responseEntity;
 
-        GridDTO grid = new GridDTO();
-        grid.buildGrid();
-        grid.setGridType(gameOption.getGridType());
-        grid.setLanguage(gameOption.getLanguage());
-        grid.setName(gameOption.getName());
-        grid.setPlayer(player);
-//        gameService.saveGrid(grid);
-        return new ResponseEntity<>(grid, HttpStatus.OK);
+        if (player.getGrids().size() > 7)
+            return new ResponseEntity<>(HttpStatus.INSUFFICIENT_STORAGE);
+
+        GridDTO gridDTO = new GridDTO();
+        Grid grid;
+        gridDTO.buildGrid();
+        gridDTO.setGridType(gameOption.getGridType());
+        gridDTO.setLanguage(gameOption.getLanguage());
+        gridDTO.setName(gameOption.getName().toUpperCase());
+        gridDTO.setPlayerLetters("");
+        gridDTO.setPlayer(player);
+
+        grid = gridDTO.toGrid();
+        grid.setLastUpdate(LocalDateTime.now());
+        player.getGrids().add(grid);
+        player.getGrids().sort(Grid::compareTo);
+
+        gameService.saveGrid(grid);
+        return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
     }
+
+    @PostMapping("/grid")
+    public ResponseEntity<PlayerDTO> saveGame(
+            @CookieValue(value = "token", required = false) String token,
+            @RequestBody GridDTO gridDTO
+    ) {
+        Player player = findPlayer(token);
+        ResponseEntity<PlayerDTO> responseEntity = playerLoggedIn(player);
+        Grid newGrid = gridDTO.toGrid();
+        Grid grid;
+
+        if (responseEntity != null)
+            return responseEntity;
+
+        grid = player.findGrid(newGrid.getId());
+        if (grid != null) {
+            grid.setGrid(newGrid.getGrid());
+            grid.setPlayerLetters(newGrid.getPlayerLetters());
+            grid.setLastUpdate(LocalDateTime.now());
+            player.getGrids().sort(Grid::compareTo);
+            gameService.saveGrid(grid);
+            return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    @DeleteMapping("/grid")
+    public ResponseEntity<PlayerDTO> deleteGame(
+            @CookieValue(value = "token", required = false) String token,
+            @RequestBody GridDTO gridDTO
+    ) {
+        Player player = findPlayer(token);
+        ResponseEntity<PlayerDTO> responseEntity = playerLoggedIn(player);
+        Grid grid = gridDTO.toGrid();
+
+        if (responseEntity != null)
+            return responseEntity;
+
+        grid = player.findGrid(grid.getId());
+        if (grid != null) {
+            player.getGrids().remove(grid);
+            this.gameService.deleteGrid(grid);
+            return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+
 
     @PostMapping("/grid/solve")
     public ResponseEntity<List<Solution>> findWordsThatFitsOnGrid(

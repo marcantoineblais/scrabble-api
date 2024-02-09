@@ -2,15 +2,14 @@ package com.marcblais.scrabbleapi.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.marcblais.scrabbleapi.dto.GridContent;
 import com.marcblais.scrabbleapi.dto.GridDTO;
 import jakarta.persistence.*;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.sql.Date;
+import java.time.LocalDateTime;
 
 @Entity
-public class Grid {
+public class Grid implements Comparable<Grid> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,23 +30,44 @@ public class Grid {
     @ManyToOne
     private Language language;
 
-    @OneToOne
+    @ManyToOne
     @JsonIgnore
     private Player player;
+
+    @JsonIgnore
+    private LocalDateTime lastUpdate;
 
     public Grid() {
     }
 
-    public Grid(String name, String grid, String playerLetters, GridType gridType, Language language, Player player) {
+    public Grid(
+            String name,
+            String grid,
+            String playerLetters,
+            GridType gridType,
+            Language language,
+            Player player,
+            LocalDateTime lastUpdate
+    ) {
         this.name = name;
         this.grid = grid;
         this.playerLetters = playerLetters;
         this.gridType = gridType;
         this.language = language;
         this.player = player;
+        this.lastUpdate = lastUpdate;
     }
 
-    public Grid(long id, String name, String grid, String playerLetters, GridType gridType, Language language, Player player) {
+    public Grid(
+            long id,
+            String name,
+            String grid,
+            String playerLetters,
+            GridType gridType,
+            Language language,
+            Player player,
+            LocalDateTime lastUpdate
+    ) {
         this.id = id;
         this.name = name;
         this.grid = grid;
@@ -55,15 +75,17 @@ public class Grid {
         this.gridType = gridType;
         this.language = language;
         this.player = player;
+        this.lastUpdate = lastUpdate;
     }
 
-    public Grid(GridDTO grid) {
-        this.id = grid.getId();
-        this.name = grid.getName();
-        this.grid = grid.gridToString();
-        this.playerLetters = grid.getPlayerLetters();
-        this.player = grid.getPlayer();
-        this.language = grid.getLanguage();
+    public Grid(GridDTO gridDTO) {
+        this.id = gridDTO.getId();
+        this.name = gridDTO.getName();
+        this.grid = gridDTO.gridToString();
+        this.playerLetters = gridDTO.getPlayerLetters();
+        this.gridType = gridDTO.getGridType().toGridType();
+        this.player = gridDTO.getPlayer();
+        this.language = gridDTO.getLanguage();
     }
 
     public long getId() {
@@ -82,6 +104,9 @@ public class Grid {
         this.name = name;
     }
 
+    public String getGrid() {
+        return grid;
+    }
 
     public void setGrid(String grid) {
         this.grid = grid;
@@ -119,6 +144,14 @@ public class Grid {
         this.player = player;
     }
 
+    public LocalDateTime getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(LocalDateTime lastUpdate) {
+        this.lastUpdate = lastUpdate;
+    }
+
     public String[][] gridToArray() {
         ObjectMapper mapper = new ObjectMapper();
 
@@ -131,6 +164,24 @@ public class Grid {
 
     public GridDTO toGridDTO() {
         return new GridDTO(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Grid grid)) return false;
+
+        return id == grid.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (id ^ (id >>> 32));
+    }
+
+    @Override
+    public int compareTo(Grid other) {
+        return other.getLastUpdate().compareTo(lastUpdate);
     }
 
     @Override

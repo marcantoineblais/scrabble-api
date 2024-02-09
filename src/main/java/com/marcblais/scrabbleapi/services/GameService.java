@@ -44,8 +44,12 @@ public class GameService {
         return pointsRepo.findByLanguage(language);
     }
 
-    public void saveGrid(GridDTO grid) {
-        gridRepo.save(grid.toGrid());
+    public void saveGrid(Grid grid) {
+        gridRepo.save(grid);
+    }
+
+    public void deleteGrid(Grid grid) {
+        gridRepo.delete(grid);
     }
 
     public Player findPlayerByUsername(String username) {

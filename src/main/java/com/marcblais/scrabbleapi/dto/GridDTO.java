@@ -169,7 +169,6 @@ public class GridDTO {
                 ", playerLetters='" + playerLetters + '\'' +
                 ", gridType=" + gridType +
                 ", language=" + language +
-                ", player=" + player +
                 '}';
     }
 }

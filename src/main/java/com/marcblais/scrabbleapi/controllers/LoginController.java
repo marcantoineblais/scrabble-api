@@ -1,5 +1,6 @@
 package com.marcblais.scrabbleapi.controllers;
 
+import com.marcblais.scrabbleapi.dto.PlayerDTO;
 import com.marcblais.scrabbleapi.dto.PlayerLogin;
 import com.marcblais.scrabbleapi.encryption.PlayerToken;
 import com.marcblais.scrabbleapi.entities.Player;
@@ -25,7 +26,7 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Player> login(@RequestBody PlayerLogin loginRequest, HttpServletResponse response) {
+    public ResponseEntity<PlayerDTO> login(@RequestBody PlayerLogin loginRequest, HttpServletResponse response) {
         Player player = loginService.findPlayerByPlayerLogin(loginRequest);
 
         if (player == null)
@@ -44,7 +45,7 @@ public class LoginController {
             cookie.setMaxAge(60 * 60 * 24 * 30); // 30 jours
         response.addCookie(cookie);
 
-        return new ResponseEntity<>(player, HttpStatus.OK);
+        return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
     }
 
     @GetMapping("/logout")

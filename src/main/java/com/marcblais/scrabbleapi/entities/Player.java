@@ -95,6 +95,10 @@ public class Player {
         this.enabled = enabled;
     }
 
+    public Grid findGrid(long id) {
+        return grids.stream().filter(g -> g.getId() == id).findFirst().orElse(null);
+    }
+
     @Override
     public String toString() {
         return "Player{" +
