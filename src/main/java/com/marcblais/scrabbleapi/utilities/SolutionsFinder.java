@@ -220,6 +220,7 @@ public class SolutionsFinder {
     }
 
     private String findOverlappingString(GridContent gridContent, char currentChar, int index) {
+        // Build a string with all the characters directly next to the given letters on the grid
         char[] contentCharsArray = gridContent.getContent().toCharArray();
         StringBuilder builder = new StringBuilder();
         builder.append(currentChar);
