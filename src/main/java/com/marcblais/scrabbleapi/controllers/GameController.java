@@ -104,6 +104,9 @@ public class GameController {
             @CookieValue(value = "token", required = false) String token,
             @RequestBody GridDTO gridDTO
     ) {
+        if (token == null)
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
         Player player = findPlayer(token);
         ResponseEntity<PlayerDTO> responseEntity = playerLoggedIn(player);
         Grid grid = gridDTO.toGrid();
