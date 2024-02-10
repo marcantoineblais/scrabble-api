@@ -38,6 +38,7 @@ public class LoginController {
 
         Cookie cookie = new Cookie("token", token);
 //        cookie.setSecure(true);
+        cookie.setDomain("http://localhost:3000");
         cookie.setHttpOnly(true);
         cookie.setPath("/");
 
@@ -56,7 +57,6 @@ public class LoginController {
 
             Cookie cookie = new Cookie("token", null);
             cookie.setHttpOnly(true);
-            cookie.setDomain("http://localhost:3000");
             cookie.setPath("/");
             cookie.setMaxAge(0);
             response.addCookie(cookie);
