@@ -112,6 +112,8 @@ public class SolutionsFinder {
 
             // Only add the solution if its adjacent solutions are all valid words
             if (adjacentSolutions != null) {
+
+                // find the index of the given adjacent solution when ran from findParallelSolutions
                 if (adjacentSolution != null) {
                     int i = 0;
                     while (pattern.charAt(i) == '.') {
@@ -138,6 +140,7 @@ public class SolutionsFinder {
     }
 
     private Set<Solution> findParallelSolution(Set<Solution> solutions) {
+        // Filter the solutions to find potentiel candidates for places where a word could be inserted next to another one
         Set<Solution> parallelSolutions = new HashSet<>();
         Set<Solution> solutionsToTest = solutions.stream()
                 .filter(s -> {
