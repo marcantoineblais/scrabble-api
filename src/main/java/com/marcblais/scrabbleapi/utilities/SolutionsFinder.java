@@ -212,6 +212,7 @@ public class SolutionsFinder {
     }
 
     private GridContent findPerpendicularContent(GridContent gridContent, int index) {
+        //find the gridContent that intersect at this particular index
         return gridContents.stream()
                 .filter(c -> c.isVertical() != gridContent.isVertical() && c.getIndex() == index)
                 .findFirst()
