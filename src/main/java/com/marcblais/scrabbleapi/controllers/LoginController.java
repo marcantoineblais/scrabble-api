@@ -77,7 +77,7 @@ public class LoginController {
     }
 
     @GetMapping("/authenticate")
-    public ResponseEntity<Player> authenticate(@CookieValue(value = "token", required = false) String token) {
+    public ResponseEntity<PlayerDTO> authenticate(@CookieValue(value = "token", required = false) String token) {
         if (token == null)
             return new ResponseEntity<>(HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);
 
@@ -86,6 +86,6 @@ public class LoginController {
             return new ResponseEntity<>(HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);
 
         Player player = loginService.findPlayerByUsername(username);
-        return new ResponseEntity<>(player, HttpStatus.OK);
+        return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
     }
 }
