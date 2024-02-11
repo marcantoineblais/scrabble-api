@@ -31,7 +31,7 @@ public class DictionnaryEntriesFinder {
                 LettersCounter.lettersCountMap(playerLetters);
 
         return entries.stream().filter(entry -> {
-            if (entry.getWord().length() != playerLetters.length())
+            if (entry.getWord().length() > playerLetters.length())
                 return false;
 
             return isWordMadeFromLetters(entry, lettersCountMap);

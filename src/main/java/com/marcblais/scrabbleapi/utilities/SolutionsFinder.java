@@ -30,12 +30,39 @@ public class SolutionsFinder {
         // Initialize list of working solutions
         Set<Solution> solutions = new HashSet<>();
 
-        for (GridContent gridContent : gridContents) {
-            solutions.addAll(findSolutionsForGridContent(
-                    gridContent, null, null, ""));
+        if (gridContents.isEmpty()) {
+            GridContent gridContent =
+                    new GridContent(".".repeat(grid.getGrid().length), grid.getGrid().length / 2, false);
+
+            Set<DictionaryEntry> validEntries =
+                    DictionnaryEntriesFinder.findEntriesByPlayerLetters(grid.getPlayerLetters(), entries);
+
+            for (DictionaryEntry entry : validEntries) {
+                int index = grid.getGrid().length / 2 - (entry.getWord().length() - 1);
+                int y = 0;
+
+                while (y < entry.getWord().length()) {
+                    solutions.add(new Solution(
+                            entry,
+                            gridContent,
+                            new HashMap<>(),
+                            ".".repeat(entry.getWord().length()),
+                            false,
+                            index + y++,
+                            gridContent.getIndex()
+                    ));
+                }
+            }
+        } else {
+
+            for (GridContent gridContent : gridContents) {
+                solutions.addAll(findSolutionsForGridContent(
+                        gridContent, null, null, ""));
+            }
+
+            solutions.addAll(findParallelSolution(solutions));
         }
 
-        solutions.addAll(findParallelSolution(solutions));
         return solutions;
     }
 
@@ -159,14 +186,16 @@ public class SolutionsFinder {
                 startIndex++;
 
             GridContent perpendicularContent = findPerpendicularContent(gridContent, startIndex);
-            GridContent tempGridContent = new GridContent(perpendicularContent);
-            AdjacentSolution adjacentSolution = new AdjacentSolution(solution.getEntry());
-            String word = solution.getEntry().getWord();
-            char newContent = startIndex == index ? word.charAt(0) : word.charAt(1);
+            if (perpendicularContent != null) {
+                GridContent tempGridContent = new GridContent(perpendicularContent);
+                AdjacentSolution adjacentSolution = new AdjacentSolution(solution.getEntry());
+                String word = solution.getEntry().getWord();
+                char newContent = startIndex == index ? word.charAt(0) : word.charAt(1);
 
-            tempGridContent.replaceContent(newContent, gridContent.getIndex());
-            parallelSolutions.addAll(findSolutionsForGridContent(
-                            tempGridContent, perpendicularContent, adjacentSolution, String.valueOf(newContent)));
+                tempGridContent.replaceContent(newContent, gridContent.getIndex());
+                parallelSolutions.addAll(findSolutionsForGridContent(
+                        tempGridContent, perpendicularContent, adjacentSolution, String.valueOf(newContent)));
+            }
         }
 
         return parallelSolutions;

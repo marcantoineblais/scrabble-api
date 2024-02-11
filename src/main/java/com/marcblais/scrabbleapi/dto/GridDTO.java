@@ -136,7 +136,8 @@ public class GridDTO {
                 }
             }
 
-            gridContents.add(new GridContent(content.toString(), y, false));
+            if (!content.toString().replace(".", "").isEmpty())
+                gridContents.add(new GridContent(content.toString(), y, false));
         }
 
         for (int x = 0; x < grid[0].length; x++) {
@@ -150,7 +151,8 @@ public class GridDTO {
                 }
             }
 
-            gridContents.add(new GridContent(content.toString(), x, true));
+            if (!content.toString().replace(".", "").isEmpty())
+                gridContents.add(new GridContent(content.toString(), x, true));
         }
 
         return gridContents;
