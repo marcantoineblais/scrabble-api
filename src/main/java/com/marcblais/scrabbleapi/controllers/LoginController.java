@@ -37,7 +37,7 @@ public class LoginController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 
         Cookie cookie = new Cookie("token", token);
-        cookie.setSecure(true);
+//        cookie.setSecure(true);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
 
