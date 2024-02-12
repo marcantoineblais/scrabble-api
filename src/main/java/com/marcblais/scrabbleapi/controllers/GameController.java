@@ -141,9 +141,9 @@ public class GameController {
         LettersValue lettersValue = gameService.findLettersValueByLanguage(grid.getLanguage());
         Set<DictionaryEntry> entries = gameService.findWordsByLanguage(grid.getLanguage())
                 .stream()
-                .filter(entry -> !entry.getWord()
+                .filter(entry -> entry.getWord()
                         .replaceAll("[" + grid.getPlayerLetters() + "]", "")
-                        .isEmpty())
+                        .length() != entry.getWord().length())
                 .collect(Collectors.toSet());
 
         List<GridContent> gridContents = grid.toGridContent();
