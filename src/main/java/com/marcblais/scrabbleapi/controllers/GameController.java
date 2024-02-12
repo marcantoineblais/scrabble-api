@@ -17,6 +17,7 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 public class GameController {
@@ -138,7 +139,13 @@ public class GameController {
             return responseEntity;
 
         LettersValue lettersValue = gameService.findLettersValueByLanguage(grid.getLanguage());
-        Set<DictionaryEntry> entries = gameService.findWordsByLanguage(grid.getLanguage());
+        Set<DictionaryEntry> entries = gameService.findWordsByLanguage(grid.getLanguage())
+                .stream()
+                .filter(entry -> !entry.getWord()
+                        .replaceAll("[" + grid.getPlayerLetters() + "]", "")
+                        .isEmpty())
+                .collect(Collectors.toSet());
+
         List<GridContent> gridContents = grid.toGridContent();
         SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
         Set<Solution> solutions = solutionsFinder.toSolutions();
