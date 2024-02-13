@@ -14,13 +14,20 @@ public class DictionnaryEntriesFinder {
 
     public static boolean isWordMadeFromLetters(DictionaryEntry entry, Map<String, Integer> playerLetters) {
         Map<String, Integer> entryLettersMap = entry.getLetters();
+        int blankTiles = playerLetters.getOrDefault(".", 0);
 
         for (String key : entryLettersMap.keySet()) {
-            if (!playerLetters.containsKey(key))
-                return false;
+            int nbLettersEntry = entryLettersMap.get(key);
+            int nbLettersPlayer = playerLetters.getOrDefault(key, 0);
 
-            if (entryLettersMap.get(key) > playerLetters.get(key))
-                return false;
+            if (nbLettersEntry > nbLettersPlayer) {
+                int nbMissingLetters = nbLettersEntry - nbLettersPlayer;
+
+                if (nbMissingLetters > blankTiles)
+                    return false;
+                else
+                    blankTiles -= nbMissingLetters;
+            }
         }
 
         return true;

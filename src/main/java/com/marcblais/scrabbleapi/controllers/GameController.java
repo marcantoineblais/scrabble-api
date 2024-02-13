@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,6 +60,7 @@ public class GameController {
         GridDTO gridDTO = new GridDTO();
         Grid grid;
         gridDTO.buildGrid();
+        gridDTO.setBlankTiles(new Integer[][]{});
         gridDTO.setGridType(gameOption.getGridType());
         gridDTO.setLanguage(gameOption.getLanguage());
         gridDTO.setName(gameOption.getName().toUpperCase());
@@ -91,6 +93,7 @@ public class GameController {
         if (grid != null) {
             grid.setGrid(newGrid.getGrid());
             grid.setPlayerLetters(newGrid.getPlayerLetters());
+            grid.setBlankTiles(newGrid.getBlankTiles());
             grid.setLastUpdate(LocalDateTime.now());
             player.getGrids().sort(Grid::compareTo);
             gameService.saveGrid(grid);
@@ -139,13 +142,7 @@ public class GameController {
             return responseEntity;
 
         LettersValue lettersValue = gameService.findLettersValueByLanguage(grid.getLanguage());
-        Set<DictionaryEntry> entries = gameService.findWordsByLanguage(grid.getLanguage())
-                .stream()
-                .filter(entry -> entry.getWord()
-                        .replaceAll("[" + grid.getPlayerLetters() + "]", "")
-                        .length() != entry.getWord().length())
-                .collect(Collectors.toSet());
-
+        Set<DictionaryEntry> entries = gameService.findWordsByLanguage(grid.getLanguage());
         List<GridContent> gridContents = grid.toGridContent();
         SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
         Set<Solution> solutions = solutionsFinder.toSolutions();

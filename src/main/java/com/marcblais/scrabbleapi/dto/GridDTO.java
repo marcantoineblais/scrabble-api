@@ -16,6 +16,7 @@ public class GridDTO {
     private String[][] grid;
     private String playerLetters;
     private GridTypeDTO gridType;
+    private Integer[][] blankTiles;
     private Language language;
 
     @JsonIgnore
@@ -24,12 +25,22 @@ public class GridDTO {
     public GridDTO() {
     }
 
-    public GridDTO(long id, String name, String[][] grid, String playerLetters, GridTypeDTO gridType, Language language, Player player) {
+    public GridDTO(
+            long id,
+            String name,
+            String[][] grid,
+            String playerLetters,
+            GridTypeDTO gridType,
+            Integer[][] blankTiles,
+            Language language,
+            Player player
+    ) {
         this.id = id;
         this.name = name;
         this.grid = grid;
         this.playerLetters = playerLetters;
         this.gridType = gridType;
+        this.blankTiles = blankTiles;
         this.language = language;
         this.player = player;
     }
@@ -37,10 +48,11 @@ public class GridDTO {
     public GridDTO(Grid grid) {
         this.id = grid.getId();
         this.name = grid.getName();
-        this.grid = grid.gridToArray();
+        this.grid = grid.toArray(grid.getGrid(), String[][].class);
         this.playerLetters = grid.getPlayerLetters();
         this.player = grid.getPlayer();
         this.gridType = new GridTypeDTO(grid.getGridType());
+        this.blankTiles = grid.toArray(grid.getBlankTiles(), Integer[][].class);
         this.language = grid.getLanguage();
     }
 
@@ -84,6 +96,14 @@ public class GridDTO {
         this.gridType = gridType;
     }
 
+    public Integer[][] getBlankTiles() {
+        return blankTiles;
+    }
+
+    public void setBlankTiles(Integer[][] blankTiles) {
+        this.blankTiles = blankTiles;
+    }
+
     public Language getLanguage() {
         return language;
     }
@@ -112,11 +132,11 @@ public class GridDTO {
         this.grid = rows;
     }
 
-    public String gridToString() {
+    public <T> String toJson(T value) {
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            return mapper.writeValueAsString(grid);
+            return mapper.writeValueAsString(value);
         } catch (Exception ex) {
             return "";
         }
@@ -167,9 +187,10 @@ public class GridDTO {
         return "GridDTO{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", grid=" + gridToString() +
+                ", grid=" + toJson(grid) +
                 ", playerLetters='" + playerLetters + '\'' +
                 ", gridType=" + gridType +
+                ", blankTiles=" + toJson(blankTiles) + '\'' +
                 ", language=" + language +
                 '}';
     }

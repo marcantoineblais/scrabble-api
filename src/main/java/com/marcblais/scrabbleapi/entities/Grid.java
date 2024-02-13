@@ -27,6 +27,9 @@ public class Grid implements Comparable<Grid> {
     @ManyToOne
     private GridType gridType;
 
+    @Column(length = 200)
+    private String blankTiles;
+
     @ManyToOne
     private Language language;
 
@@ -45,6 +48,7 @@ public class Grid implements Comparable<Grid> {
             String grid,
             String playerLetters,
             GridType gridType,
+            String blankTiles,
             Language language,
             Player player,
             LocalDateTime lastUpdate
@@ -53,6 +57,7 @@ public class Grid implements Comparable<Grid> {
         this.grid = grid;
         this.playerLetters = playerLetters;
         this.gridType = gridType;
+        this.blankTiles = blankTiles;
         this.language = language;
         this.player = player;
         this.lastUpdate = lastUpdate;
@@ -81,9 +86,10 @@ public class Grid implements Comparable<Grid> {
     public Grid(GridDTO gridDTO) {
         this.id = gridDTO.getId();
         this.name = gridDTO.getName();
-        this.grid = gridDTO.gridToString();
+        this.grid = gridDTO.toJson(gridDTO.getGrid());
         this.playerLetters = gridDTO.getPlayerLetters();
         this.gridType = gridDTO.getGridType().toGridType();
+        this.blankTiles = gridDTO.toJson(gridDTO.getBlankTiles());
         this.player = gridDTO.getPlayer();
         this.language = gridDTO.getLanguage();
     }
@@ -128,6 +134,14 @@ public class Grid implements Comparable<Grid> {
         this.gridType = gridType;
     }
 
+    public String getBlankTiles() {
+        return blankTiles;
+    }
+
+    public void setBlankTiles(String blankTiles) {
+        this.blankTiles = blankTiles;
+    }
+
     public Language getLanguage() {
         return language;
     }
@@ -152,13 +166,13 @@ public class Grid implements Comparable<Grid> {
         this.lastUpdate = lastUpdate;
     }
 
-    public String[][] gridToArray() {
+    public <T> T[][] toArray(String value, Class<T[][]> tclass) {
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            return mapper.readValue(grid, String[][].class);
+            return mapper.readValue(value, tclass);
         } catch (Exception ex) {
-            return new String[][]{};
+            return null;
         }
     }
 
