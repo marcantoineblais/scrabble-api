@@ -3,7 +3,6 @@ package com.marcblais.scrabbleapi.utilities;
 import com.marcblais.scrabbleapi.dto.AdjacentSolution;
 import com.marcblais.scrabbleapi.dto.GridDTO;
 import com.marcblais.scrabbleapi.dto.Solution;
-import com.marcblais.scrabbleapi.entities.Grid;
 import com.marcblais.scrabbleapi.entities.LettersValue;
 
 import java.util.ArrayList;
