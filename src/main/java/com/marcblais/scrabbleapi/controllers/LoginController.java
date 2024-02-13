@@ -3,6 +3,7 @@ package com.marcblais.scrabbleapi.controllers;
 import com.marcblais.scrabbleapi.dto.PlayerDTO;
 import com.marcblais.scrabbleapi.dto.PlayerLogin;
 import com.marcblais.scrabbleapi.encryption.PlayerToken;
+import com.marcblais.scrabbleapi.entities.Grid;
 import com.marcblais.scrabbleapi.entities.Player;
 import com.marcblais.scrabbleapi.entities.Role;
 import com.marcblais.scrabbleapi.services.LoginService;
@@ -45,6 +46,7 @@ public class LoginController {
             cookie.setMaxAge(60 * 60 * 24 * 30); // 30 jours
         response.addCookie(cookie);
 
+        player.getGrids().sort(Grid::compareTo);
         return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
     }
 
@@ -86,6 +88,7 @@ public class LoginController {
             return new ResponseEntity<>(HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);
 
         Player player = loginService.findPlayerByUsername(username);
+        player.getGrids().sort(Grid::compareTo);
         return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
     }
 }
