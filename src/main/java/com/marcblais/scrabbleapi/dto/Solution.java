@@ -3,8 +3,7 @@ package com.marcblais.scrabbleapi.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Solution implements Comparable<Solution> {
     private DictionaryEntry entry;
@@ -20,8 +19,11 @@ public class Solution implements Comparable<Solution> {
     private int x;
     private int y;
     private int points;
+    private List<Integer> blankTiles;
 
     public Solution() {
+        this.adjacentSolutions = new HashMap<>();
+        this.blankTiles = new ArrayList<>();
     }
 
     public Solution(
@@ -40,6 +42,7 @@ public class Solution implements Comparable<Solution> {
         this.vertical = vertical;
         this.x = x;
         this.y = y;
+        this.blankTiles = new ArrayList<>();
         this.points = 0;
     }
 
@@ -107,6 +110,14 @@ public class Solution implements Comparable<Solution> {
         this.points = points;
     }
 
+    public List<Integer> getBlankTiles() {
+        return blankTiles;
+    }
+
+    public void setBlankTiles(List<Integer> blankTiles) {
+        this.blankTiles = blankTiles;
+    }
+
     @Override
     public int compareTo(Solution o) {
         if (points == o.getPoints())
@@ -137,6 +148,7 @@ public class Solution implements Comparable<Solution> {
                 ", points=" + points +
                 ", adjacentSolutions=" + adjacentSolutions +
                 ", gridContent=" + gridContent +
+                ", blankTiles=" + blankTiles +
                 '}';
     }
 }

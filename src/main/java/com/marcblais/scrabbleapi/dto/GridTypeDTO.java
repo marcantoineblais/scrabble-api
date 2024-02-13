@@ -5,15 +5,15 @@ import com.marcblais.scrabbleapi.entities.GridType;
 
 public class GridTypeDTO {
     long id;
-    private int[][] doubleLetter;
-    private int[][] tripleLetter;
-    private int[][] doubleWord;
-    private int[][] tripleWord;
+    private Integer[][] doubleLetter;
+    private Integer[][] tripleLetter;
+    private Integer[][] doubleWord;
+    private Integer[][] tripleWord;
 
     public GridTypeDTO() {
     }
 
-    public GridTypeDTO(long id, int[][] doubleLetter, int[][] tripleLetter, int[][] doubleWord, int[][] tripleWord) {
+    public GridTypeDTO(long id, Integer[][] doubleLetter, Integer[][] tripleLetter, Integer[][] doubleWord, Integer[][] tripleWord) {
         this.id = id;
         this.doubleLetter = doubleLetter;
         this.tripleLetter = tripleLetter;
@@ -37,39 +37,39 @@ public class GridTypeDTO {
         this.id = id;
     }
 
-    public int[][] getDoubleLetter() {
+    public Integer[][] getDoubleLetter() {
         return doubleLetter;
     }
 
-    public void setDoubleLetter(int[][] doubleLetter) {
+    public void setDoubleLetter(Integer[][] doubleLetter) {
         this.doubleLetter = doubleLetter;
     }
 
-    public int[][] getTripleLetter() {
+    public Integer[][] getTripleLetter() {
         return tripleLetter;
     }
 
-    public void setTripleLetter(int[][] tripleLetter) {
+    public void setTripleLetter(Integer[][] tripleLetter) {
         this.tripleLetter = tripleLetter;
     }
 
-    public int[][] getDoubleWord() {
+    public Integer[][] getDoubleWord() {
         return doubleWord;
     }
 
-    public void setDoubleWord(int[][] doubleWord) {
+    public void setDoubleWord(Integer[][] doubleWord) {
         this.doubleWord = doubleWord;
     }
 
-    public int[][] getTripleWord() {
+    public Integer[][] getTripleWord() {
         return tripleWord;
     }
 
-    public void setTripleWord(int[][] tripleWord) {
+    public void setTripleWord(Integer[][] tripleWord) {
         this.tripleWord = tripleWord;
     }
 
-    public String bonusToString(int[][] bonus) {
+    public String bonusToString(Integer[][] bonus) {
         ObjectMapper mapper = new ObjectMapper();
 
         try {

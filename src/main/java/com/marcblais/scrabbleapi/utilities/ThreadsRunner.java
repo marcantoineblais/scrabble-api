@@ -1,32 +1,24 @@
 package com.marcblais.scrabbleapi.utilities;
 
+import org.hibernate.annotations.Synchronize;
+
 import java.util.HashSet;
-import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 public class ThreadsRunner {
 
-    public static void runThreads(List<Thread> threads) {
-        Set<Thread> threadSubSet = new HashSet<>();
+    public static void runThreads(Queue<Thread> threads, ThreadGroup threadGroup) throws InterruptedException {
         int cores = Runtime.getRuntime().availableProcessors();
 
-        for (int i = 0; i < threads.size(); i++) {
-            threadSubSet.add(threads.get(i));
+        while (!threads.isEmpty() || threadGroup.activeCount() > 0) {
+            if (threadGroup.activeCount() < cores) {
+                synchronized (threads) {
+                    Thread thread = threads.poll();
 
-            if (i % cores == cores - 1 || i == threads.size() - 1) {
-                for (Thread thread : threadSubSet) {
-                    thread.start();
+                    if (thread != null)
+                        thread.start();
                 }
-
-                for (Thread thread : threadSubSet) {
-                    try {
-                        thread.join();
-                    } catch (Exception ex) {
-                        System.out.println(ex.getMessage());
-                    }
-                }
-
-                threadSubSet.clear();
             }
         }
     }

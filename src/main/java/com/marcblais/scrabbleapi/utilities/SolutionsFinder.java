@@ -1,6 +1,7 @@
 package com.marcblais.scrabbleapi.utilities;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import com.marcblais.scrabbleapi.dto.AdjacentSolution;
@@ -74,7 +75,8 @@ public class SolutionsFinder {
             GridContent gridContent, GridContent oldGridContent, AdjacentSolution adjacentSolution, String ignoredLetter
     ) {
         List<Solution> solutions = new ArrayList<>();
-        List<Thread> threads = new ArrayList<>();
+        Queue<Thread> threads = new ArrayDeque<>();
+        ThreadGroup threadGroup = new ThreadGroup("main");
 
         // Get a list of regexp pattern to find words, sorted by index of grid content characters array
         Map<Integer, List<String>> testPatterns =
@@ -91,10 +93,10 @@ public class SolutionsFinder {
 
         for (int key : testPatterns.keySet()) {
             for (String pattern : testPatterns.get(key)) {
-                threads.add(new Thread(() -> {
+                threads.add(new Thread(threadGroup, () -> {
                     // initialize a list of entries that matches the regexp pattern and the players letters
                     Set<DictionaryEntry> matchingEntries;
-
+                    Thread nextThread = null;
                     // check if pattern was found before, if so get its matches
                     // else find the matches in the dictionnary and add it to the map
                     if (foundEntriesMap.containsKey(pattern) && oldGridContent == null) {
@@ -119,7 +121,9 @@ public class SolutionsFinder {
             }
         }
 
-        ThreadsRunner.runThreads(threads);
+        try {
+            ThreadsRunner.runThreads(threads, threadGroup);
+        } catch (Exception ignored) {}
 
         return solutions;
     }
@@ -132,6 +136,10 @@ public class SolutionsFinder {
             AdjacentSolution adjacentSolution
     ) {
         Set<Solution> solutions = new HashSet<>();
+        String patternLetters = pattern.replace(".", "");
+        String playerLetters = grid.getPlayerLetters().replace(".", "");
+        String letterToRemove = playerLetters + patternLetters;
+
         for (DictionaryEntry entry : entries) {
             // find the words that are formed perpendicular to the solution
             Map<Integer, AdjacentSolution> adjacentSolutions =
@@ -149,17 +157,30 @@ public class SolutionsFinder {
                     adjacentSolutions.put(i, adjacentSolution);
                 }
 
-                Solution solution = new Solution(
-                        entry,
-                        gridContent,
-                        adjacentSolutions,
-                        pattern,
-                        gridContent.isVertical(),
-                        gridContent.isVertical() ? gridContent.getIndex() : index,
-                        gridContent.isVertical() ? index : gridContent.getIndex()
-                );
+                if (grid.getPlayerLetters().contains(".")) {
+                    String jokerLetter = entry.getWord();
 
-                solutions.add(solution);
+                    for (String letter : letterToRemove.split("")) {
+                        jokerLetter = jokerLetter.replaceFirst(letter, "");
+                    }
+
+                    List<Solution> solutionsWithJoker = PermutationFinder.findPermutationOfJokerTiles(
+                            jokerLetter, entry, gridContent, adjacentSolutions, index, pattern
+                    );
+
+                    solutions.addAll(solutionsWithJoker);
+                } else {
+                    Solution solution = new Solution(
+                            entry,
+                            gridContent,
+                            adjacentSolutions,
+                            pattern,
+                            gridContent.isVertical(),
+                            gridContent.isVertical() ? gridContent.getIndex() : index,
+                            gridContent.isVertical() ? index : gridContent.getIndex()
+                    );
+                    solutions.add(solution);
+                }
             }
         }
 

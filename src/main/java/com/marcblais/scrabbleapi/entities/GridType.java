@@ -77,13 +77,13 @@ public class GridType {
         this.tripleWord = tripleWord;
     }
 
-    public int[][] bonusToIntArray(String bonus) {
+    public Integer[][] bonusToIntArray(String bonus) {
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            return mapper.readValue(bonus, int[][].class);
+            return mapper.readValue(bonus, Integer[][].class);
         } catch (Exception ex) {
-            return new int[][]{};
+            return null;
         }
     }
 
