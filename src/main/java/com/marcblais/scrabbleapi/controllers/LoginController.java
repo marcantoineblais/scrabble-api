@@ -2,6 +2,9 @@ package com.marcblais.scrabbleapi.controllers;
 
 import com.marcblais.scrabbleapi.dto.PlayerDTO;
 import com.marcblais.scrabbleapi.dto.PlayerLogin;
+import com.marcblais.scrabbleapi.dto.SignInRequest;
+import com.marcblais.scrabbleapi.encryption.EmailToken;
+import com.marcblais.scrabbleapi.encryption.PasswordEncoder;
 import com.marcblais.scrabbleapi.encryption.PlayerToken;
 import com.marcblais.scrabbleapi.entities.Grid;
 import com.marcblais.scrabbleapi.entities.Player;
@@ -10,6 +13,7 @@ import com.marcblais.scrabbleapi.services.LoginService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,12 @@ import java.net.URI;
 @RestController
 public class LoginController {
     private LoginService loginService;
+
+    @Value("${backend.url}")
+    private String domain;
+
+    @Value("${email.address}")
+    private String senderAddress;
 
     @Autowired
     public LoginController(LoginService loginService) {
@@ -69,11 +79,23 @@ public class LoginController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<String> signin(@RequestBody PlayerLogin loginRequest) {
-        Player player = new Player(loginRequest.getUsername(), loginRequest.getPassword());
+    public ResponseEntity<Void> signIn(@RequestBody SignInRequest request) {
+        if (loginService.isUsernameTaken(request.getUsername()))
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
 
+        Player player = new Player(request.getUsername(), request.getPassword());
+        player.setPassword(PasswordEncoder.encode(player.getPassword()));
         player.getRoles().add(new Role(player, "PLAYER"));
+        
+        String token = EmailToken.createJwtForEmail(request.getUsername(), request.getEmail());
+        String url = domain + "/validate?token=" + token;
+        String subject = "Nouvelle demande d'inscription - Scrabble Cheetah";
+        String body = "Vous avez reçu une nouvelle demande d'accès à Scrabble Cheetah: \n\n" +
+                request.getInfo() + "\n\n" +
+                "Accepter la demande : " + url;
+
         loginService.savePlayer(player);
+        loginService.sendEmail(senderAddress, subject, body);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -90,5 +112,31 @@ public class LoginController {
         Player player = loginService.findPlayerByUsername(username);
         player.getGrids().sort(Grid::compareTo);
         return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
+    }
+
+    @GetMapping("/validate")
+    public ResponseEntity<Void> validatePlayer(@RequestParam("token") String token) {
+        System.out.println(token);
+        String email = EmailToken.getEmailFromJwt(token);
+        String username = EmailToken.getUsernameFromJwt(token);
+
+        if (email == null || username == null)
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+        Player player = loginService.findPlayerByUsername(username);
+        if (player == null)
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+        String subject = "Demande d'accès à Scrabble Cheetah";
+        String body = "Bonjour,\n\nVotre demande d'inscription à été approuvée.\n\n" +
+                "Si vous avez des questions ou commentaires, vous pouvez me contacter à " + senderAddress + ".\n\n" +
+                "Vous pouvez essayer l'application dès maintenant en cliquant ici : " + domain + "\n\n" +
+                "Merci pour l'intérêt que vous démontrer à Scrabble Cheetah, la meilleure app pour tricher au Scrabble.";
+
+        player.setEnabled(true);
+        loginService.savePlayer(player);
+        loginService.sendEmail(email, subject, body);
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

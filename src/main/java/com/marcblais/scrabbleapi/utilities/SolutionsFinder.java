@@ -39,20 +39,7 @@ public class SolutionsFinder {
                     DictionnaryEntriesFinder.findEntriesByPlayerLetters(grid.getPlayerLetters(), entries);
 
             for (DictionaryEntry entry : validEntries) {
-                int index = grid.getGrid().length / 2 - (entry.getWord().length() - 1);
-                int y = 0;
-
-                while (y < entry.getWord().length()) {
-                    solutions.add(new Solution(
-                            entry,
-                            gridContent,
-                            new HashMap<>(),
-                            ".".repeat(entry.getWord().length()),
-                            false,
-                            index + y++,
-                            gridContent.getIndex()
-                    ));
-                }
+                solutions.addAll(findSolutionsForFirstWord(entry, gridContent));
             }
         } else {
 
@@ -62,6 +49,49 @@ public class SolutionsFinder {
             }
 
             solutions.addAll(findParallelSolution(solutions));
+        }
+
+        return solutions;
+    }
+
+    private List<Solution> findSolutionsForFirstWord(DictionaryEntry entry, GridContent gridContent) {
+        List<Solution> solutions = new ArrayList<>();
+
+        int index = grid.getGrid().length / 2 - (entry.getWord().length() - 1);
+        int y = 0;
+
+        while (y < entry.getWord().length()) {
+            String pattern = ".".repeat(entry.getWord().length());
+            String letterToRemove = grid.getPlayerLetters().replace(".", "");
+
+            if (grid.getPlayerLetters().contains(".")) {
+                String jokerLetter = entry.getWord();
+
+                for (String letter : letterToRemove.split("")) {
+                    jokerLetter = jokerLetter.replaceFirst(letter, "");
+                }
+
+                List<Solution> solutionsWithJoker = PermutationFinder.findPermutationOfJokerTiles(
+                        jokerLetter,
+                        entry,
+                        gridContent,
+                        new HashMap<>(),
+                        index + y++,
+                        pattern
+                );
+
+                solutions.addAll(solutionsWithJoker);
+            } else {
+                solutions.add(new Solution(
+                        entry,
+                        gridContent,
+                        new HashMap<>(),
+                        pattern,
+                        false,
+                        index + y++,
+                        gridContent.getIndex()
+                ));
+            }
         }
 
         return solutions;
@@ -147,7 +177,6 @@ public class SolutionsFinder {
 
             // Only add the solution if its adjacent solutions are all valid words
             if (adjacentSolutions != null) {
-
                 // find the index of the given adjacent solution when ran from findParallelSolutions
                 if (adjacentSolution != null) {
                     int i = 0;
@@ -225,7 +254,7 @@ public class SolutionsFinder {
     private Map<Integer, AdjacentSolution> findAdjacentSolutions(
             DictionaryEntry entry, GridContent gridContent, int index, String pattern
     ) {
-        Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
+        Map<Integer, AdjacentSolution> adjacentSolutions = null;
         char[] charsArray = gridContent.getContent().toCharArray();
 
         for (int i = 0; i < pattern.length(); i++) {
@@ -233,28 +262,39 @@ public class SolutionsFinder {
             if (charsArray[i + index] == '.') {
                 // find the GridContent that is perpendicular from the solution on the current character
                 GridContent perpendicularContent = findPerpendicularContent(gridContent, i + index);
-                DictionaryEntry adjacentEntry;
 
                 // if there is no letters in this grid content, then there will not be any adjacent solution here
                 if (perpendicularContent != null) {
-                    // get the string formed by the players letter and the surrounding words
-                    String adjacentSolutionString = findOverlappingString(
-                            perpendicularContent, entry.getWord().charAt(i), gridContent.getIndex()
-                    );
+                    adjacentSolutions = findValidAdjacentSolutions(perpendicularContent, gridContent, i, entry);
 
-                    // if there is at least 2 letters, make sure they form a valid word
-                    // else reject this solution
-                    if (adjacentSolutionString.length() > 1) {
-                        adjacentEntry = DictionnaryEntriesFinder.findEntryByWord(adjacentSolutionString, entries);
-
-                        if (adjacentEntry != null) {
-                            AdjacentSolution adjacentSolution = new AdjacentSolution(adjacentEntry);
-                            adjacentSolutions.put(i, adjacentSolution);
-                        } else {
-                            return null;
-                        }
-                    }
+                    if (adjacentSolutions == null)
+                        return null;
                 }
+            }
+        }
+
+        return adjacentSolutions;
+    }
+
+    private Map<Integer, AdjacentSolution> findValidAdjacentSolutions(
+            GridContent perpendicularContent, GridContent gridContent, int i,DictionaryEntry entry
+    ) {
+        Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
+        // get the string formed by the players letter and the surrounding words
+        String adjacentSolutionString = findOverlappingString(
+                perpendicularContent, entry.getWord().charAt(i), gridContent.getIndex()
+        );
+
+        // if there is at least 2 letters, make sure they form a valid word
+        // else reject this solution
+        if (adjacentSolutionString.length() > 1) {
+            DictionaryEntry adjacentEntry = DictionnaryEntriesFinder.findEntryByWord(adjacentSolutionString, entries);
+
+            if (adjacentEntry != null) {
+                AdjacentSolution adjacentSolution = new AdjacentSolution(adjacentEntry);
+                adjacentSolutions.put(i, adjacentSolution);
+            } else {
+                return null;
             }
         }
 
