@@ -27,8 +27,7 @@ public class LoginService {
     public Player findPlayerByPlayerLogin(PlayerLogin loginRequest) {
         Player player = playerRepo.findById(loginRequest.getUsername()).orElse(null);
 
-        if (player != null && player.isEnabled() &&
-                PasswordEncoder.isEqual(loginRequest.getPassword(), player.getPassword()))
+        if (player != null && PasswordEncoder.isEqual(loginRequest.getPassword(), player.getPassword()))
             return player;
 
         return null;

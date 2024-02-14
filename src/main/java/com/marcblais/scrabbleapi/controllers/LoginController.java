@@ -46,6 +46,9 @@ public class LoginController {
         if (player == null)
             return new ResponseEntity<>(HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);
 
+        if (!player.isEnabled())
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
         String token = PlayerToken.createJwtForPlayer(player.getUsername());
         if (token == null)
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -133,7 +136,7 @@ public class LoginController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         String subject = "Demande d'accès à Scrabble Cheetah";
-        String body = "Bonjour,\n\nVotre demande d'inscription à été approuvée.\n\n" +
+        String body = "Bonjour,\n\nVotre demande d'inscription a été approuvée.\n\n" +
                 "Si vous avez des questions ou commentaires, vous pouvez me contacter à " + senderAddress + ".\n\n" +
                 "Vous pouvez essayer l'application dès maintenant en cliquant ici : " + domain + "\n\n" +
                 "Merci pour l'intérêt que vous démontrer à Scrabble Cheetah, la meilleure app pour tricher au Scrabble.";
