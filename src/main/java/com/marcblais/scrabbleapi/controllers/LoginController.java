@@ -119,7 +119,6 @@ public class LoginController {
 
     @GetMapping("/validate")
     public ResponseEntity<Void> validatePlayer(@RequestParam("token") String token) {
-        System.out.println(token);
         String email = EmailToken.getEmailFromJwt(token);
         String username = EmailToken.getUsernameFromJwt(token);
 
