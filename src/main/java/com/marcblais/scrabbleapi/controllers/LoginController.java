@@ -26,6 +26,9 @@ public class LoginController {
     private LoginService loginService;
 
     @Value("${backend.url}")
+    private String apiDomain;
+
+    @Value("${cors.allowedOrigins}")
     private String domain;
 
     @Value("${email.address}")
@@ -88,7 +91,7 @@ public class LoginController {
         player.getRoles().add(new Role(player, "PLAYER"));
 
         String token = EmailToken.createJwtForEmail(request.getUsername(), request.getEmail());
-        String url = domain + "/validate?token=" + token;
+        String url = apiDomain + "/validate?token=" + token;
         String subject = "Nouvelle demande d'inscription - Scrabble Cheetah";
         String body = "Vous avez reçu une nouvelle demande d'accès à Scrabble Cheetah: \n\n" +
                 request.getInfo() + "\n\n" +
