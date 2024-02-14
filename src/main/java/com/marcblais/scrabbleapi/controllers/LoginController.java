@@ -86,7 +86,7 @@ public class LoginController {
         Player player = new Player(request.getUsername(), request.getPassword());
         player.setPassword(PasswordEncoder.encode(player.getPassword()));
         player.getRoles().add(new Role(player, "PLAYER"));
-        
+
         String token = EmailToken.createJwtForEmail(request.getUsername(), request.getEmail());
         String url = domain + "/validate?token=" + token;
         String subject = "Nouvelle demande d'inscription - Scrabble Cheetah";
@@ -110,6 +110,9 @@ public class LoginController {
             return new ResponseEntity<>(HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);
 
         Player player = loginService.findPlayerByUsername(username);
+        if (player == null)
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
         player.getGrids().sort(Grid::compareTo);
         return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
     }
