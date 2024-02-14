@@ -150,6 +150,7 @@ public class GameController {
         pointCalculator.calculatePoints();
 
         List<Solution> bestSolutions = pointCalculator.findTopSolutions(10);
+        bestSolutions.forEach(System.out::println);
         return new ResponseEntity<>(bestSolutions, HttpStatus.OK);
     }
 

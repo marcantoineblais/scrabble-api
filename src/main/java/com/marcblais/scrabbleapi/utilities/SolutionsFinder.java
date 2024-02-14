@@ -254,7 +254,7 @@ public class SolutionsFinder {
     private Map<Integer, AdjacentSolution> findAdjacentSolutions(
             DictionaryEntry entry, GridContent gridContent, int index, String pattern
     ) {
-        Map<Integer, AdjacentSolution> adjacentSolutions = null;
+        Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
         char[] charsArray = gridContent.getContent().toCharArray();
 
         for (int i = 0; i < pattern.length(); i++) {
@@ -265,10 +265,20 @@ public class SolutionsFinder {
 
                 // if there is no letters in this grid content, then there will not be any adjacent solution here
                 if (perpendicularContent != null) {
-                    adjacentSolutions = findValidAdjacentSolutions(perpendicularContent, gridContent, i, entry);
+                    // get the string formed by the players letter and the surrounding words
+                    String adjacentSolutionString = findOverlappingString(
+                            perpendicularContent, entry.getWord().charAt(i), gridContent.getIndex());
 
-                    if (adjacentSolutions == null)
-                        return null;
+                    // if there is at least 2 letters, make sure they form a valid word
+                    // else reject this solution
+                    if (adjacentSolutionString.length() > 1) {
+                        AdjacentSolution adjacentSolution =
+                                findValidAdjacentSolution(adjacentSolutionString, entry);
+                        if (adjacentSolution == null)
+                            return null;
+                        else
+                            adjacentSolutions.put(i, adjacentSolution);
+                    }
                 }
             }
         }
@@ -276,29 +286,17 @@ public class SolutionsFinder {
         return adjacentSolutions;
     }
 
-    private Map<Integer, AdjacentSolution> findValidAdjacentSolutions(
-            GridContent perpendicularContent, GridContent gridContent, int i,DictionaryEntry entry
+    private AdjacentSolution findValidAdjacentSolution(
+            String adjacentSolutionString, DictionaryEntry entry
     ) {
-        Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
-        // get the string formed by the players letter and the surrounding words
-        String adjacentSolutionString = findOverlappingString(
-                perpendicularContent, entry.getWord().charAt(i), gridContent.getIndex()
-        );
+        AdjacentSolution adjacentSolution = null;
+        DictionaryEntry adjacentEntry = DictionnaryEntriesFinder.findEntryByWord(adjacentSolutionString, entries);
 
-        // if there is at least 2 letters, make sure they form a valid word
-        // else reject this solution
-        if (adjacentSolutionString.length() > 1) {
-            DictionaryEntry adjacentEntry = DictionnaryEntriesFinder.findEntryByWord(adjacentSolutionString, entries);
-
-            if (adjacentEntry != null) {
-                AdjacentSolution adjacentSolution = new AdjacentSolution(adjacentEntry);
-                adjacentSolutions.put(i, adjacentSolution);
-            } else {
-                return null;
-            }
+        if (adjacentEntry != null) {
+            adjacentSolution = new AdjacentSolution(adjacentEntry);
         }
 
-        return adjacentSolutions;
+        return adjacentSolution;
     }
 
     private GridContent findPerpendicularContent(GridContent gridContent, int index) {
