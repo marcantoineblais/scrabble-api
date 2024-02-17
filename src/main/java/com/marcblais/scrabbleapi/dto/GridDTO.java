@@ -142,22 +142,22 @@ public class GridDTO {
         }
     }
 
-    public List<GridContent> toGridContent() {
-        List<GridContent> gridContents = new ArrayList<>();
+    public List<GridRowsCols> toGridRowsColsList() {
+        List<GridRowsCols> gridRowsCols = new ArrayList<>();
 
         for (int y = 0; y < grid.length; y++) {
             StringBuilder content = new StringBuilder();
 
             for (int x = 0; x < grid[y].length; x++) {
                 if (grid[y][x].isEmpty()) {
-                    content.append(".");
+                    content.append(bonusOrLetter(y, x));
                 } else {
                     content.append(grid[y][x]);
                 }
             }
 
-            if (!content.toString().replace(".", "").isEmpty())
-                gridContents.add(new GridContent(content.toString(), y, false));
+            if (content.toString().matches("^.*[A-Z].*$"))
+                gridRowsCols.add(new GridRowsCols(content.toString(), y, false));
         }
 
         for (int x = 0; x < grid[0].length; x++) {
@@ -165,17 +165,51 @@ public class GridDTO {
 
             for (int y = 0; y < grid.length; y++) {
                 if (grid[y][x].isEmpty()) {
-                    content.append(".");
+                    content.append(bonusOrLetter(y, x));
                 } else {
                     content.append(grid[y][x]);
                 }
             }
 
-            if (!content.toString().replace(".", "").isEmpty())
-                gridContents.add(new GridContent(content.toString(), x, true));
+            if (content.toString().matches("^.*[A-Z].*$"))
+                gridRowsCols.add(new GridRowsCols(content.toString(), x, true));
         }
 
-        return gridContents;
+        return gridRowsCols;
+    }
+
+    public List<GridEntry> toGridEntriesList() {
+        List<GridEntry> entries = new ArrayList<>();
+        for (int y = 0; y < grid.length; y++) {
+            for (int x = 0; x < grid[y].length; x++) {
+                if (!grid[y][x].isEmpty() && (x == 0 || grid[y][x - 1].isEmpty())) {
+                    StringBuilder verticalEntry = new StringBuilder();
+                    verticalEntry.append(grid[y][x]);
+                    int i = x + 1;
+
+                    while (i < grid[y].length && !grid[y][i].isEmpty()) {
+                        verticalEntry.append(grid[y][i]);
+                        i++;
+                    }
+
+                    entries.add(new GridEntry(verticalEntry.toString(), y, x, false));
+                }
+
+                if (!grid[y][x].isEmpty() && (y == 0 || grid[y - 1][x].isEmpty())) {
+                    StringBuilder horizontalEntry = new StringBuilder();
+                    horizontalEntry.append(grid[y][x]);
+                    int i = y + 1;
+
+                    while (i < grid[y].length && !grid[i][x].isEmpty()) {
+                        horizontalEntry.append(grid[i][x]);
+                        i++;
+                    }
+
+                    entries.add(new GridEntry(horizontalEntry.toString(), y, x, true));
+                }
+            }
+        }
+        return entries;
     }
 
     public Grid toGrid() {
@@ -193,5 +227,26 @@ public class GridDTO {
                 ", blankTiles=" + toJson(blankTiles) + '\'' +
                 ", language=" + language +
                 '}';
+    }
+
+    private String bonusOrLetter(int y, int x) {
+        String value;
+
+        if (Arrays.stream(gridType.getDoubleLetter())
+                .anyMatch(coords -> coords[0] == y && coords[1] == x))
+            value = Bonus.DOUBLE_LETTER;
+        else if (Arrays.stream(gridType.getTripleLetter())
+                .anyMatch(coords -> coords[0] == y && coords[1] == x))
+            value = Bonus.TRIPLE_LETTER;
+        else if (Arrays.stream(gridType.getDoubleWord())
+                .anyMatch(coords -> coords[0] == y && coords[1] == x))
+            value = Bonus.DOUBLE_WORD;
+        else if (Arrays.stream(gridType.getTripleWord())
+                .anyMatch(coords -> coords[0] == y && coords[1] == x))
+            value = Bonus.TRIPLE_WORD;
+        else
+            value = ".";
+
+        return value;
     }
 }

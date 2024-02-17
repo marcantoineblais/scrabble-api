@@ -1,11 +1,10 @@
 package com.marcblais.scrabbleapi.utilities;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import com.marcblais.scrabbleapi.dto.AdjacentSolution;
-import com.marcblais.scrabbleapi.dto.GridContent;
+import com.marcblais.scrabbleapi.dto.GridRowsCols;
 import com.marcblais.scrabbleapi.dto.GridDTO;
 import com.marcblais.scrabbleapi.dto.Solution;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
@@ -13,17 +12,17 @@ import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 public class SolutionsFinder {
     private GridDTO grid;
     private Set<DictionaryEntry> entries;
-    private List<GridContent> gridContents;
+    private List<GridRowsCols> gridRowsCols;
     private final Map<String, Set<DictionaryEntry>> foundEntriesMap;
 
     public SolutionsFinder() {
         this.foundEntriesMap = new HashMap<>();
     }
 
-    public SolutionsFinder(GridDTO grid, Set<DictionaryEntry> entries, List<GridContent> gridContents) {
+    public SolutionsFinder(GridDTO grid, Set<DictionaryEntry> entries, List<GridRowsCols> gridRowsCols) {
         this.grid = grid;
         this.entries = entries;
-        this.gridContents = gridContents;
+        this.gridRowsCols = gridRowsCols;
         this.foundEntriesMap = new HashMap<>();
     }
 
@@ -31,21 +30,21 @@ public class SolutionsFinder {
         // Initialize list of working solutions
         Set<Solution> solutions = new HashSet<>();
 
-        if (gridContents.isEmpty()) {
-            GridContent gridContent =
-                    new GridContent(".".repeat(grid.getGrid().length), grid.getGrid().length / 2, false);
+        if (gridRowsCols.isEmpty()) {
+            GridRowsCols gridRowsCols =
+                    new GridRowsCols(".".repeat(grid.getGrid().length), grid.getGrid().length / 2, false);
 
             Set<DictionaryEntry> validEntries =
                     DictionnaryEntriesFinder.findEntriesByPlayerLetters(grid.getPlayerLetters(), entries);
 
             for (DictionaryEntry entry : validEntries) {
-                solutions.addAll(findSolutionsForFirstWord(entry, gridContent));
+                solutions.addAll(findSolutionsForFirstWord(entry, gridRowsCols));
             }
         } else {
 
-            for (GridContent gridContent : gridContents) {
+            for (GridRowsCols gridRowsCols : this.gridRowsCols) {
                 solutions.addAll(findSolutionsForGridContent(
-                        gridContent, null, null, ""));
+                        gridRowsCols, null, null, ""));
             }
 
             solutions.addAll(findParallelSolution(solutions));
@@ -54,7 +53,7 @@ public class SolutionsFinder {
         return solutions;
     }
 
-    private List<Solution> findSolutionsForFirstWord(DictionaryEntry entry, GridContent gridContent) {
+    private List<Solution> findSolutionsForFirstWord(DictionaryEntry entry, GridRowsCols gridRowsCols) {
         List<Solution> solutions = new ArrayList<>();
 
         int index = grid.getGrid().length / 2 - (entry.getWord().length() - 1);
@@ -74,7 +73,7 @@ public class SolutionsFinder {
                 List<Solution> solutionsWithJoker = PermutationFinder.findPermutationOfJokerTiles(
                         jokerLetter,
                         entry,
-                        gridContent,
+                        gridRowsCols,
                         new HashMap<>(),
                         index + y++,
                         pattern
@@ -84,12 +83,12 @@ public class SolutionsFinder {
             } else {
                 solutions.add(new Solution(
                         entry,
-                        gridContent,
+                        gridRowsCols,
                         new HashMap<>(),
                         pattern,
                         false,
                         index + y++,
-                        gridContent.getIndex()
+                        gridRowsCols.getIndex()
                 ));
             }
         }
@@ -102,7 +101,7 @@ public class SolutionsFinder {
     }
 
     private List<Solution> findSolutionsForGridContent(
-            GridContent gridContent, GridContent oldGridContent, AdjacentSolution adjacentSolution, String ignoredLetter
+            GridRowsCols gridRowsCols, GridRowsCols oldGridRowsCols, AdjacentSolution adjacentSolution, String ignoredLetter
     ) {
         List<Solution> solutions = new ArrayList<>();
         Queue<Thread> threads = new ArrayDeque<>();
@@ -110,10 +109,10 @@ public class SolutionsFinder {
 
         // Get a list of regexp pattern to find words, sorted by index of grid content characters array
         Map<Integer, List<String>> testPatterns =
-                gridContent.testPatterns(grid.getPlayerLetters().replaceFirst(ignoredLetter, ""));
+                gridRowsCols.testPatterns(grid.getPlayerLetters().replaceFirst(ignoredLetter, ""));
 
-        if (oldGridContent != null) {
-            Map<Integer, List<String>> oldPatterns = oldGridContent.testPatterns(grid.getPlayerLetters());
+        if (oldGridRowsCols != null) {
+            Map<Integer, List<String>> oldPatterns = oldGridRowsCols.testPatterns(grid.getPlayerLetters());
             for (int key : testPatterns.keySet()) {
                 if (oldPatterns.containsKey(key)) {
                     testPatterns.get(key).removeAll(oldPatterns.get(key));
@@ -129,7 +128,7 @@ public class SolutionsFinder {
                     Thread nextThread = null;
                     // check if pattern was found before, if so get its matches
                     // else find the matches in the dictionnary and add it to the map
-                    if (foundEntriesMap.containsKey(pattern) && oldGridContent == null) {
+                    if (foundEntriesMap.containsKey(pattern) && oldGridRowsCols == null) {
                         matchingEntries = foundEntriesMap.get(pattern);
                     } else {
                         matchingEntries = findMatchingEntries(pattern, ignoredLetter);
@@ -141,7 +140,7 @@ public class SolutionsFinder {
 
                     // test every matches to make sure they can be played on the grid
                     Set<Solution> solutionsForEntries =
-                            findSolutionForEntries(matchingEntries, gridContent, key, pattern, adjacentSolution);
+                            findSolutionForEntries(matchingEntries, gridRowsCols, key, pattern, adjacentSolution);
 
                     // to avoid missing data because of the multi-threading
                     synchronized (solutions) {
@@ -160,7 +159,7 @@ public class SolutionsFinder {
 
     private Set<Solution> findSolutionForEntries(
             Set<DictionaryEntry> entries,
-            GridContent gridContent,
+            GridRowsCols gridRowsCols,
             int index,
             String pattern,
             AdjacentSolution adjacentSolution
@@ -173,7 +172,7 @@ public class SolutionsFinder {
         for (DictionaryEntry entry : entries) {
             // find the words that are formed perpendicular to the solution
             Map<Integer, AdjacentSolution> adjacentSolutions =
-                    findAdjacentSolutions(entry, gridContent, index, pattern);
+                    findAdjacentSolutions(entry, gridRowsCols, index, pattern);
 
             // Only add the solution if its adjacent solutions are all valid words
             if (adjacentSolutions != null) {
@@ -194,19 +193,19 @@ public class SolutionsFinder {
                     }
 
                     List<Solution> solutionsWithJoker = PermutationFinder.findPermutationOfJokerTiles(
-                            jokerLetter, entry, gridContent, adjacentSolutions, index, pattern
+                            jokerLetter, entry, gridRowsCols, adjacentSolutions, index, pattern
                     );
 
                     solutions.addAll(solutionsWithJoker);
                 } else {
                     Solution solution = new Solution(
                             entry,
-                            gridContent,
+                            gridRowsCols,
                             adjacentSolutions,
                             pattern,
-                            gridContent.isVertical(),
-                            gridContent.isVertical() ? gridContent.getIndex() : index,
-                            gridContent.isVertical() ? index : gridContent.getIndex()
+                            gridRowsCols.isVertical(),
+                            gridRowsCols.isVertical() ? gridRowsCols.getIndex() : index,
+                            gridRowsCols.isVertical() ? index : gridRowsCols.getIndex()
                     );
                     solutions.add(solution);
                 }
@@ -228,23 +227,23 @@ public class SolutionsFinder {
                 .collect(Collectors.toSet());
 
         for (Solution solution : solutionsToTest) {
-            GridContent gridContent = solution.getGridContent();
+            GridRowsCols gridRowsCols = solution.getGridContent();
             int index = solution.isVertical() ? solution.getY() : solution.getX();
             int startIndex = index;
 
-            if (gridContent.getContent().charAt(index) != '.')
+            if (gridRowsCols.getContent().charAt(index) != '.')
                 startIndex++;
 
-            GridContent perpendicularContent = findPerpendicularContent(gridContent, startIndex);
+            GridRowsCols perpendicularContent = findPerpendicularContent(gridRowsCols, startIndex);
             if (perpendicularContent != null) {
-                GridContent tempGridContent = new GridContent(perpendicularContent);
+                GridRowsCols tempGridRowsCols = new GridRowsCols(perpendicularContent);
                 AdjacentSolution adjacentSolution = new AdjacentSolution(solution.getEntry());
                 String word = solution.getEntry().getWord();
                 char newContent = startIndex == index ? word.charAt(0) : word.charAt(1);
 
-                tempGridContent.replaceContent(newContent, gridContent.getIndex());
+                tempGridRowsCols.replaceContent(newContent, gridRowsCols.getIndex());
                 parallelSolutions.addAll(findSolutionsForGridContent(
-                        tempGridContent, perpendicularContent, adjacentSolution, String.valueOf(newContent)));
+                        tempGridRowsCols, perpendicularContent, adjacentSolution, String.valueOf(newContent)));
             }
         }
 
@@ -252,22 +251,22 @@ public class SolutionsFinder {
     }
 
     private Map<Integer, AdjacentSolution> findAdjacentSolutions(
-            DictionaryEntry entry, GridContent gridContent, int index, String pattern
+            DictionaryEntry entry, GridRowsCols gridRowsCols, int index, String pattern
     ) {
         Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
-        char[] charsArray = gridContent.getContent().toCharArray();
+        char[] charsArray = gridRowsCols.getContent().toCharArray();
 
         for (int i = 0; i < pattern.length(); i++) {
             // if the spot on the grid was not filled before, check its surrounding
             if (charsArray[i + index] == '.') {
                 // find the GridContent that is perpendicular from the solution on the current character
-                GridContent perpendicularContent = findPerpendicularContent(gridContent, i + index);
+                GridRowsCols perpendicularContent = findPerpendicularContent(gridRowsCols, i + index);
 
                 // if there is no letters in this grid content, then there will not be any adjacent solution here
                 if (perpendicularContent != null) {
                     // get the string formed by the players letter and the surrounding words
                     String adjacentSolutionString = findOverlappingString(
-                            perpendicularContent, entry.getWord().charAt(i), gridContent.getIndex());
+                            perpendicularContent, entry.getWord().charAt(i), gridRowsCols.getIndex());
 
                     // if there is at least 2 letters, make sure they form a valid word
                     // else reject this solution
@@ -299,17 +298,17 @@ public class SolutionsFinder {
         return adjacentSolution;
     }
 
-    private GridContent findPerpendicularContent(GridContent gridContent, int index) {
+    private GridRowsCols findPerpendicularContent(GridRowsCols gridRowsCols, int index) {
         //find the gridContent that intersect at this particular index
-        return gridContents.stream()
-                .filter(c -> c.isVertical() != gridContent.isVertical() && c.getIndex() == index)
+        return this.gridRowsCols.stream()
+                .filter(c -> c.isVertical() != gridRowsCols.isVertical() && c.getIndex() == index)
                 .findFirst()
                 .orElse(null);
     }
 
-    private String findOverlappingString(GridContent gridContent, char currentChar, int index) {
+    private String findOverlappingString(GridRowsCols gridRowsCols, char currentChar, int index) {
         // Build a string with all the characters directly next to the given letters on the grid
-        char[] contentCharsArray = gridContent.getContent().toCharArray();
+        char[] contentCharsArray = gridRowsCols.getContent().toCharArray();
         StringBuilder builder = new StringBuilder();
         builder.append(currentChar);
 

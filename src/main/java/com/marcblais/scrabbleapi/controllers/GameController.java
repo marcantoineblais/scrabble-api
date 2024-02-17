@@ -5,8 +5,7 @@ import com.marcblais.scrabbleapi.encryption.PlayerToken;
 import com.marcblais.scrabbleapi.entities.*;
 import com.marcblais.scrabbleapi.services.GameService;
 import com.marcblais.scrabbleapi.utilities.DictionnaryEntriesFinder;
-import com.marcblais.scrabbleapi.utilities.PointCalculator;
-import com.marcblais.scrabbleapi.utilities.SolutionsFinder;
+import com.marcblais.scrabbleapi.utilities.ThreadsRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,9 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,19 +25,6 @@ public class GameController {
     @Autowired
     public GameController(GameService gameService) {
         this.gameService = gameService;
-    }
-
-    @GetMapping("/letters")
-    public Set<DictionaryEntry> findWordsWithLetters(
-            @RequestParam(name = "letters") String playerLetters,
-            @RequestParam(name = "language") String name
-    ) {
-        Language language = gameService.findLanguageByName(name);
-        Set<DictionaryEntry> entries = gameService.findWordsByLanguage(language);
-        Set<DictionaryEntry> matchingEntries =
-                DictionnaryEntriesFinder.findEntriesByPlayerLetters(playerLetters.toUpperCase(), entries);
-
-        return matchingEntries;
     }
 
     @PostMapping("/grid/new")
@@ -141,16 +125,101 @@ public class GameController {
         if (responseEntity != null)
             return responseEntity;
 
+        // Recuperer la valeur des lettres
         LettersValue lettersValue = gameService.findLettersValueByLanguage(grid.getLanguage());
-        Set<DictionaryEntry> entries = gameService.findWordsByLanguage(grid.getLanguage());
-        List<GridContent> gridContents = grid.toGridContent();
-        SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
-        Set<Solution> solutions = solutionsFinder.toSolutions();
-        PointCalculator pointCalculator = new PointCalculator(grid, solutions, lettersValue);
-        pointCalculator.calculatePoints();
 
-        List<Solution> bestSolutions = pointCalculator.findTopSolutions(10);
-        return new ResponseEntity<>(bestSolutions, HttpStatus.OK);
+//        // Recuperer la liste des mots dans la langue de la grille
+        Set<DictionaryEntry> entries = gameService.findWordsByLanguage(grid.getLanguage());
+
+        // Creer la liste des lignes de contenu de la grille
+        List<GridRowsCols> gridRowsCols = grid.toGridRowsColsList();
+
+        // Creer la liste des patterns pour chaque GridRowsCols
+        Map<GridRowsCols, Map<Integer, List<String>>> patternsByGridRowsCols = new HashMap<>();
+        gridRowsCols.forEach(g -> patternsByGridRowsCols.put(g, g.testPatterns(grid.getPlayerLetters())));
+
+        // Creer la liste des entries qui sont deja sur la liste
+        List<GridEntry> gridEntries = grid.toGridEntriesList();
+
+        // Recuperer tous les patterns uniques
+        Set<String> uniquePatterns = new HashSet<>();
+        for (Map<Integer, List<String>> map : patternsByGridRowsCols.values()) {
+            for (List<String> patternsByIndex : map.values()) {
+                Set<String> patternsWithoutBonus = patternsByIndex.stream()
+                        .map(p -> p.replaceAll("[0-9]", ".")).collect(Collectors.toSet());
+                uniquePatterns.addAll(patternsWithoutBonus);
+            }
+        }
+
+        // Pour chaque pattern unique, trouver les mots qui sont possibles
+        // Creer un nouveau thread pour chaque pattern
+        Map<String, Set<DictionaryEntry>> entriesByPattern = new HashMap<>();
+        Queue<Thread> entriesByPatternThreads = new ArrayDeque<>();
+        ThreadGroup threadGroupForPattern = new ThreadGroup("pattern");
+        for (String pattern : uniquePatterns) {
+            Thread thread = new Thread(threadGroupForPattern, () -> {
+                Set<DictionaryEntry> entriesForPattern = DictionnaryEntriesFinder.findEntriesByPattern(
+                        pattern, grid.getPlayerLetters(), entries, ""
+                );
+
+                synchronized (entriesByPattern) {
+                    entriesByPattern.put(pattern, entriesForPattern);
+                }
+            });
+
+            entriesByPatternThreads.add(thread);
+        }
+        try {
+            ThreadsRunner.runThreads(entriesByPatternThreads, threadGroupForPattern);
+        } catch (Exception ignored) {
+        }
+
+        // Assign every list of entries to their matching patterns by grid content
+        Map<GridRowsCols, Map<Integer, Set<DictionaryEntry>>> entriesByGridRowsCols = new HashMap<>();
+        for (GridRowsCols gridRowCol : patternsByGridRowsCols.keySet()) {
+            Map<Integer, Set<DictionaryEntry>> entriesByIndex = new HashMap<>();
+            Map<Integer, List<String>> map = patternsByGridRowsCols.get(gridRowCol);
+
+            for (Integer index : map.keySet()) {
+                Set<DictionaryEntry> entriesList = new HashSet<>();
+
+                for (String pattern : map.get(index)) {
+                    String patternWithoutBonus = pattern.replaceAll("[0-9]", ".");
+                    entriesList.addAll(entriesByPattern.get(patternWithoutBonus));
+                }
+
+                entriesByIndex.put(index, entriesList);
+            }
+
+            entriesByGridRowsCols.put(gridRowCol, entriesByIndex);
+        }
+
+        // For every entries in the grid contents, test if the entry is forming another word perpendicular to it.
+        // Create a new thread for every dictionary entry in the set
+        // Filter the grid content for every gridRowCol and sort them by coordinates
+        Queue<Thread> solutionsForGridRowsColsThreads = new ArrayDeque<>();
+        ThreadGroup threadGroupForGridRowsCols = new ThreadGroup("gridRowsCols");
+        Set<Solution> solutions = new HashSet<>();
+        for (GridRowsCols gridRowCol : entriesByGridRowsCols.keySet()) {
+            Map<Integer, Set<DictionaryEntry>> map = entriesByGridRowsCols.get(gridRowCol);
+
+            for (Integer index : map.keySet()) {
+                for (DictionaryEntry entry : map.get(index)) {
+                    Thread thread = new Thread(threadGroupForGridRowsCols, () -> {
+                       // CREATE THREAD TO FIND SOLUTIONS
+                    });
+                }
+            }
+        }
+
+//        SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
+//        Set<Solution> solutions = solutionsFinder.toSolutions();
+//        PointCalculator pointCalculator = new PointCalculator(grid, solutions, lettersValue);
+//        pointCalculator.calculatePoints();
+//
+//        List<Solution> bestSolutions = pointCalculator.findTopSolutions(10);
+//        return new ResponseEntity<>(bestSolutions, HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     private Player findPlayer(String token) {

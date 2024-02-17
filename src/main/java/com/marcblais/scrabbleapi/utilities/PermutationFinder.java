@@ -1,7 +1,7 @@
 package com.marcblais.scrabbleapi.utilities;
 
 import com.marcblais.scrabbleapi.dto.AdjacentSolution;
-import com.marcblais.scrabbleapi.dto.GridContent;
+import com.marcblais.scrabbleapi.dto.GridRowsCols;
 import com.marcblais.scrabbleapi.dto.Solution;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 
@@ -13,7 +13,7 @@ public class PermutationFinder {
     public static List<Solution> findPermutationOfJokerTiles(
             String jokerLetter,
             DictionaryEntry entry,
-            GridContent gridContent,
+            GridRowsCols gridRowsCols,
             Map<Integer, AdjacentSolution> adjacentSolutions,
             int index,
             String pattern
@@ -36,12 +36,12 @@ public class PermutationFinder {
                             !pattern.substring(j, j + 1).equals(jokerLetters[1])) {
                         Solution solutionWithJoker = new Solution(
                                 entry,
-                                gridContent,
+                                gridRowsCols,
                                 adjacentSolutions,
                                 pattern,
-                                gridContent.isVertical(),
-                                gridContent.isVertical() ? gridContent.getIndex() : index,
-                                gridContent.isVertical() ? index : gridContent.getIndex()
+                                gridRowsCols.isVertical(),
+                                gridRowsCols.isVertical() ? gridRowsCols.getIndex() : index,
+                                gridRowsCols.isVertical() ? index : gridRowsCols.getIndex()
                         );
 
                         solutionWithJoker.getBlankTiles().add(i);
@@ -63,12 +63,12 @@ public class PermutationFinder {
                 if (!pattern.substring(i, i + 1).equals(jokerLetter)) {
                     Solution solutionWithJoker = new Solution(
                             entry,
-                            gridContent,
+                            gridRowsCols,
                             adjacentSolutions,
                             pattern,
-                            gridContent.isVertical(),
-                            gridContent.isVertical() ? gridContent.getIndex() : index,
-                            gridContent.isVertical() ? index : gridContent.getIndex()
+                            gridRowsCols.isVertical(),
+                            gridRowsCols.isVertical() ? gridRowsCols.getIndex() : index,
+                            gridRowsCols.isVertical() ? index : gridRowsCols.getIndex()
                     );
 
 
@@ -81,12 +81,12 @@ public class PermutationFinder {
         } else {
             Solution solution = new Solution(
                     entry,
-                    gridContent,
+                    gridRowsCols,
                     adjacentSolutions,
                     pattern,
-                    gridContent.isVertical(),
-                    gridContent.isVertical() ? gridContent.getIndex() : index,
-                    gridContent.isVertical() ? index : gridContent.getIndex()
+                    gridRowsCols.isVertical(),
+                    gridRowsCols.isVertical() ? gridRowsCols.getIndex() : index,
+                    gridRowsCols.isVertical() ? index : gridRowsCols.getIndex()
             );
             solutions.add(solution);
         }

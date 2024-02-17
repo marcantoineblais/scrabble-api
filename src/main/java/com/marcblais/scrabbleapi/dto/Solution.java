@@ -8,7 +8,7 @@ import java.util.*;
 public class Solution implements Comparable<Solution> {
     private DictionaryEntry entry;
     @JsonIgnore
-    private GridContent gridContent;
+    private GridRowsCols gridRowsCols;
 
     @JsonIgnore
     private Map<Integer, AdjacentSolution> adjacentSolutions;
@@ -28,7 +28,7 @@ public class Solution implements Comparable<Solution> {
 
     public Solution(
             DictionaryEntry entry,
-            GridContent gridContent,
+            GridRowsCols gridRowsCols,
             Map<Integer, AdjacentSolution> adjacentSolutions,
             String pattern,
             boolean vertical,
@@ -36,7 +36,7 @@ public class Solution implements Comparable<Solution> {
             int y
     ) {
         this.entry = entry;
-        this.gridContent = gridContent;
+        this.gridRowsCols = gridRowsCols;
         this.adjacentSolutions = adjacentSolutions;
         this.pattern = pattern;
         this.vertical = vertical;
@@ -54,12 +54,12 @@ public class Solution implements Comparable<Solution> {
         this.entry = entry;
     }
 
-    public GridContent getGridContent() {
-        return gridContent;
+    public GridRowsCols getGridContent() {
+        return gridRowsCols;
     }
 
-    public void setGridContent(GridContent gridContent) {
-        this.gridContent = gridContent;
+    public void setGridContent(GridRowsCols gridRowsCols) {
+        this.gridRowsCols = gridRowsCols;
     }
 
     public Map<Integer, AdjacentSolution> getAdjacentSolutions() {
@@ -147,7 +147,7 @@ public class Solution implements Comparable<Solution> {
                 ", vertical=" + vertical +
                 ", points=" + points +
                 ", adjacentSolutions=" + adjacentSolutions +
-                ", gridContent=" + gridContent +
+                ", gridContent=" + gridRowsCols +
                 ", blankTiles=" + blankTiles +
                 '}';
     }

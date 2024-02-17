@@ -82,7 +82,7 @@ public class DictionaryEntry {
 
     @Override
     public String toString() {
-        return "Word{" +
+        return "DictionaryEntry{" +
                 "id=" + id +
                 ", word='" + word + '\'' +
                 ", language=" + languages +

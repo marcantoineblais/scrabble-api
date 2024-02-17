@@ -2,24 +2,24 @@ package com.marcblais.scrabbleapi.dto;
 
 import java.util.*;
 
-public class GridContent {
+public class GridRowsCols {
     private String content;
     private int index;
     private boolean vertical;
 
-    public GridContent() {
+    public GridRowsCols() {
     }
 
-    public GridContent(String content, int index, boolean vertical) {
+    public GridRowsCols(String content, int index, boolean vertical) {
         this.content = content;
         this.index = index;
         this.vertical = vertical;
     }
 
-    public GridContent(GridContent gridContent) {
-        this.content = gridContent.getContent();
-        this.index = gridContent.getIndex();
-        this.vertical = gridContent.isVertical();
+    public GridRowsCols(GridRowsCols gridRowsCols) {
+        this.content = gridRowsCols.getContent();
+        this.index = gridRowsCols.getIndex();
+        this.vertical = gridRowsCols.isVertical();
     }
 
     public String getContent() {
@@ -48,9 +48,9 @@ public class GridContent {
 
     public Map<Integer, List<String>> testPatterns(String playerLetters) {
         Map<Integer, List<String>> patternsMap = new HashMap<>();
-        char[] contentCharArray = content.toCharArray();
+        String[] lettersArray = content.split("");
 
-        for (int i = 0; i < contentCharArray.length; i++) {
+        for (int i = 0; i < lettersArray.length; i++) {
             List<String> patterns = new ArrayList<>();
             StringBuilder builder = new StringBuilder();
             boolean containsLetter = false;
@@ -58,9 +58,9 @@ public class GridContent {
             int startIndex = i;
 
             // Add every letters until reaching a blank space
-            if (contentCharArray[i] != '.') {
-                while (i < contentCharArray.length && contentCharArray[i] != '.') {
-                    builder.append(contentCharArray[i++]);
+            if (lettersArray[i].matches("[A-Z]")) {
+                while (i < lettersArray.length && lettersArray[i].matches("[A-Z]")) {
+                    builder.append(lettersArray[i++]);
                 }
 
                 containsLetter = true;
@@ -69,31 +69,31 @@ public class GridContent {
             int j = i;
 
             // Add every pattern that contains at least one letter, every loop adds a new character to the pattern until max length is reached
-            while (remainingLetters > 0 && j < contentCharArray.length) {
-                builder.append(contentCharArray[j]);
+            while (remainingLetters > 0 && j < lettersArray.length) {
+                builder.append(lettersArray[j]);
 
-                if (contentCharArray[j] == '.')
+                if (!lettersArray[j].matches("[A-Z]"))
                     remainingLetters -= 1;
                 else {
-                    while (j < contentCharArray.length - 1 && contentCharArray[j + 1] != '.') {
-                        builder.append(contentCharArray[++j]);
+                    while (j < lettersArray.length - 1 && lettersArray[j + 1].matches("[A-Z]")) {
+                        builder.append(lettersArray[++j]);
                     }
 
                     containsLetter = true;
                 }
 
-                if (containsLetter && ((j < contentCharArray.length - 1 && contentCharArray[j + 1] == '.') ||
-                                j == contentCharArray.length - 1))
+                if (containsLetter && ((j < lettersArray.length - 1 && !lettersArray[j + 1].matches("[A-Z]")) ||
+                                j == lettersArray.length - 1))
                     patterns.add(builder.toString());
 
                 j++;
             }
 
-            if (remainingLetters == 0 && j < contentCharArray.length && contentCharArray[j] != '.') {
-                builder.append(contentCharArray[j]);
+            if (remainingLetters == 0 && j < lettersArray.length && lettersArray[j].matches("[A-Z]")) {
+                builder.append(lettersArray[j]);
 
-                while (j < contentCharArray.length - 1 && contentCharArray[j + 1] != '.') {
-                    builder.append(contentCharArray[++j]);
+                while (j < lettersArray.length - 1 && lettersArray[j + 1].matches("[A-Z]")) {
+                    builder.append(lettersArray[++j]);
                 }
                 
                 patterns.add(builder.toString());
@@ -117,5 +117,21 @@ public class GridContent {
                 ", index=" + index +
                 ", vertical=" + vertical +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GridRowsCols that)) return false;
+
+        if (index != that.index) return false;
+        return vertical == that.vertical;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = index;
+        result = 31 * result + (vertical ? 1 : 0);
+        return result;
     }
 }
