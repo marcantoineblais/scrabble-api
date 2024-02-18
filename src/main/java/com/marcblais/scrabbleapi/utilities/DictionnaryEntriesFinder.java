@@ -46,14 +46,10 @@ public class DictionnaryEntriesFinder {
     }
 
     public static Set<DictionaryEntry> findEntriesByPattern(
-            String pattern, String playerLetters, Set<DictionaryEntry> entries, String ignoredLetter
+            String pattern, String playerLetters, Set<DictionaryEntry> entries
     ) {
         String letters = pattern.replace(".", "") + playerLetters;
         Map<String, Integer> lettersCountMap = LettersCounter.lettersCountMap(letters);
-
-        // Removed ignored letter (used for parallel solutions)
-        if (lettersCountMap.containsKey(ignoredLetter))
-            lettersCountMap.put(ignoredLetter, lettersCountMap.get(ignoredLetter) - 1);
 
         return entries.stream().filter(entry -> {
             if (entry.getWord().length() != pattern.length())

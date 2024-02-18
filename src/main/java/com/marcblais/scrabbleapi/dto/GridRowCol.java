@@ -1,25 +1,37 @@
 package com.marcblais.scrabbleapi.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.*;
 
-public class GridRowsCols {
+public class GridRowCol {
     private String content;
     private int index;
     private boolean vertical;
 
-    public GridRowsCols() {
+    @JsonIgnore
+    private GridRowCol previousGridRowCol;
+
+    @JsonIgnore
+    private GridRowCol nextGridRowCol;
+
+    public GridRowCol() {
     }
 
-    public GridRowsCols(String content, int index, boolean vertical) {
+    public GridRowCol(String content, int index, boolean vertical) {
         this.content = content;
         this.index = index;
         this.vertical = vertical;
     }
 
-    public GridRowsCols(GridRowsCols gridRowsCols) {
-        this.content = gridRowsCols.getContent();
-        this.index = gridRowsCols.getIndex();
-        this.vertical = gridRowsCols.isVertical();
+    public GridRowCol(
+            String content, int index, boolean vertical, GridRowCol previousGridRowCol, GridRowCol nextGridRowCol
+    ) {
+        this.content = content;
+        this.index = index;
+        this.vertical = vertical;
+        this.previousGridRowCol = previousGridRowCol;
+        this.nextGridRowCol = nextGridRowCol;
     }
 
     public String getContent() {
@@ -46,14 +58,32 @@ public class GridRowsCols {
         this.vertical = vertical;
     }
 
+    public GridRowCol getPreviousGridRowCol() {
+        return previousGridRowCol;
+    }
+
+    public void setPreviousGridRowCol(GridRowCol previousGridRowCol) {
+        this.previousGridRowCol = previousGridRowCol;
+    }
+
+    public GridRowCol getNextGridRowCol() {
+        return nextGridRowCol;
+    }
+
+    public void setNextGridRowCol(GridRowCol nextGridRowCol) {
+        this.nextGridRowCol = nextGridRowCol;
+    }
+
     public Map<Integer, List<String>> testPatterns(String playerLetters) {
         Map<Integer, List<String>> patternsMap = new HashMap<>();
         String[] lettersArray = content.split("");
+        String[] previousLettersArray = previousGridRowCol == null ? null : previousGridRowCol.getContent().split("");
+        String[] nextLettersArray = nextGridRowCol == null ? null : nextGridRowCol.getContent().split("");
 
         for (int i = 0; i < lettersArray.length; i++) {
             List<String> patterns = new ArrayList<>();
             StringBuilder builder = new StringBuilder();
-            boolean containsLetter = false;
+            boolean isValid = false;
             int remainingLetters = playerLetters.length();
             int startIndex = i;
 
@@ -63,7 +93,7 @@ public class GridRowsCols {
                     builder.append(lettersArray[i++]);
                 }
 
-                containsLetter = true;
+                isValid = true;
             }
 
             int j = i;
@@ -72,17 +102,23 @@ public class GridRowsCols {
             while (remainingLetters > 0 && j < lettersArray.length) {
                 builder.append(lettersArray[j]);
 
-                if (!lettersArray[j].matches("[A-Z]"))
+                if (!lettersArray[j].matches("[A-Z]")) {
                     remainingLetters -= 1;
-                else {
+
+                    if (((previousLettersArray != null && previousLettersArray[j].matches("[A-Z]")) ||
+                            (nextLettersArray != null && nextLettersArray[j].matches("[A-Z]"))) &&
+                            ((j < lettersArray.length - 1 && !lettersArray[j + 1].matches("[A-Z]")) ||
+                            j == lettersArray.length - 1))
+                        isValid = true;
+                } else {
                     while (j < lettersArray.length - 1 && lettersArray[j + 1].matches("[A-Z]")) {
                         builder.append(lettersArray[++j]);
                     }
 
-                    containsLetter = true;
+                    isValid = true;
                 }
 
-                if (containsLetter && ((j < lettersArray.length - 1 && !lettersArray[j + 1].matches("[A-Z]")) ||
+                if (isValid && ((j < lettersArray.length - 1 && !lettersArray[j + 1].matches("[A-Z]")) ||
                                 j == lettersArray.length - 1))
                     patterns.add(builder.toString());
 
@@ -122,7 +158,7 @@ public class GridRowsCols {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof GridRowsCols that)) return false;
+        if (!(o instanceof GridRowCol that)) return false;
 
         if (index != that.index) return false;
         return vertical == that.vertical;

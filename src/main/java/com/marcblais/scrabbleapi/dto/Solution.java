@@ -7,8 +7,9 @@ import java.util.*;
 
 public class Solution implements Comparable<Solution> {
     private DictionaryEntry entry;
+
     @JsonIgnore
-    private GridRowsCols gridRowsCols;
+    private GridRowCol gridRowCol;
 
     @JsonIgnore
     private Map<Integer, AdjacentSolution> adjacentSolutions;
@@ -28,7 +29,7 @@ public class Solution implements Comparable<Solution> {
 
     public Solution(
             DictionaryEntry entry,
-            GridRowsCols gridRowsCols,
+            GridRowCol gridRowCol,
             Map<Integer, AdjacentSolution> adjacentSolutions,
             String pattern,
             boolean vertical,
@@ -36,7 +37,7 @@ public class Solution implements Comparable<Solution> {
             int y
     ) {
         this.entry = entry;
-        this.gridRowsCols = gridRowsCols;
+        this.gridRowCol = gridRowCol;
         this.adjacentSolutions = adjacentSolutions;
         this.pattern = pattern;
         this.vertical = vertical;
@@ -54,12 +55,12 @@ public class Solution implements Comparable<Solution> {
         this.entry = entry;
     }
 
-    public GridRowsCols getGridContent() {
-        return gridRowsCols;
+    public GridRowCol getGridRowCol() {
+        return gridRowCol;
     }
 
-    public void setGridContent(GridRowsCols gridRowsCols) {
-        this.gridRowsCols = gridRowsCols;
+    public void setGridRowCol(GridRowCol gridRowCol) {
+        this.gridRowCol = gridRowCol;
     }
 
     public Map<Integer, AdjacentSolution> getAdjacentSolutions() {
@@ -120,6 +121,9 @@ public class Solution implements Comparable<Solution> {
 
     @Override
     public int compareTo(Solution o) {
+        if (o == null)
+            return -1;
+
         if (points == o.getPoints())
             return entry.getWord().compareTo(o.getEntry().getWord());
         else
@@ -130,19 +134,22 @@ public class Solution implements Comparable<Solution> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Solution solution)) return false;
-        return x == solution.x && y == solution.y && vertical == solution.vertical && Objects.equals(entry, solution.entry);
+        return vertical == solution.vertical &&
+                x == solution.x && y == solution.y &&
+                Objects.equals(entry, solution.entry) &&
+                Objects.equals(blankTiles, solution.blankTiles);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(entry, x, y, vertical);
+        return Objects.hash(entry, vertical, x, y, blankTiles);
     }
 
     @Override
     public String toString() {
         return "Solution{" +
                 "entry=" + entry +
-                ", gridRowsCols=" + gridRowsCols +
+                ", gridRowsCols=" + gridRowCol +
                 ", adjacentSolutions=" + adjacentSolutions +
                 ", pattern='" + pattern + '\'' +
                 ", vertical=" + vertical +

@@ -5,6 +5,7 @@ import com.marcblais.scrabbleapi.encryption.PlayerToken;
 import com.marcblais.scrabbleapi.entities.*;
 import com.marcblais.scrabbleapi.services.GameService;
 import com.marcblais.scrabbleapi.utilities.DictionnaryEntriesFinder;
+import com.marcblais.scrabbleapi.utilities.PointCalculator;
 import com.marcblais.scrabbleapi.utilities.ThreadsRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -132,10 +133,10 @@ public class GameController {
         Set<DictionaryEntry> entries = gameService.findWordsByLanguage(grid.getLanguage());
 
         // Creer la liste des lignes de contenu de la grille
-        List<GridRowsCols> gridRowsCols = grid.toGridRowsColsList();
+        List<GridRowCol> gridRowsCols = grid.toGridRowColList();
 
         // Creer la liste des patterns pour chaque GridRowsCols
-        Map<GridRowsCols, Map<Integer, List<String>>> patternsByGridRowsCols = new HashMap<>();
+        Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsCols = new HashMap<>();
         gridRowsCols.forEach(g -> patternsByGridRowsCols.put(g, g.testPatterns(grid.getPlayerLetters())));
 
         // Creer la liste des entries qui sont deja sur la liste
@@ -159,7 +160,7 @@ public class GameController {
         for (String pattern : uniquePatterns) {
             Thread thread = new Thread(threadGroupForPattern, () -> {
                 Set<DictionaryEntry> entriesForPattern = DictionnaryEntriesFinder.findEntriesByPattern(
-                        pattern, grid.getPlayerLetters(), entries, ""
+                        pattern, grid.getPlayerLetters(), entries
                 );
 
                 synchronized (entriesByPattern) {
@@ -175,8 +176,8 @@ public class GameController {
         }
 
         // Assign every list of entries to their matching patterns by grid content
-        Map<GridRowsCols, Map<Integer, Set<DictionaryEntry>>> entriesByGridRowsCols = new HashMap<>();
-        for (GridRowsCols gridRowCol : patternsByGridRowsCols.keySet()) {
+        Map<GridRowCol, Map<Integer, Set<DictionaryEntry>>> entriesByGridRowsCols = new HashMap<>();
+        for (GridRowCol gridRowCol : patternsByGridRowsCols.keySet()) {
             Map<Integer, Set<DictionaryEntry>> entriesByIndex = new HashMap<>();
             Map<Integer, List<String>> map = patternsByGridRowsCols.get(gridRowCol);
 
@@ -199,7 +200,7 @@ public class GameController {
         Queue<Thread> solutionsBuildingThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForSolutionsBuilding = new ThreadGroup("solutionsBuilding");
         Set<Solution> unfilteredSolutions = new HashSet<>();
-        for (GridRowsCols gridRowCol : entriesByGridRowsCols.keySet()) {
+        for (GridRowCol gridRowCol : entriesByGridRowsCols.keySet()) {
             Map<Integer, Set<DictionaryEntry>> map = entriesByGridRowsCols.get(gridRowCol);
 
             for (Integer index : map.keySet()) {
@@ -207,6 +208,8 @@ public class GameController {
                 int x = gridRowCol.isVertical() ? gridRowCol.getIndex() : index;
 
                 for (DictionaryEntry entry : map.get(index)) {
+                    // I NEED TO ADD LOGIC HERE TO CREATE SOLUTION WITH BLANK TILES //
+
                     Thread thread = new Thread(threadGroupForSolutionsBuilding, () -> {
                         Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
 
@@ -294,9 +297,12 @@ public class GameController {
                         .allMatch(as -> allValidAdjacentSolutionsWords.contains(as.getWord()))
                 ).collect(Collectors.toSet());
 
-        validSolutions.forEach(System.out::println);
+        // Calculate the points for every valid solutions and keep the 10 best solutions
+        validSolutions.forEach(s -> PointCalculator.calculatePointsForSolutions(s, lettersValue));
+        List<Solution> solutions = PointCalculator.getNBestSolutions(validSolutions, 10);
+        solutions.sort(Solution::compareTo);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(solutions, HttpStatus.OK);
     }
 
     private Player findPlayer(String token) {

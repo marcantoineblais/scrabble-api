@@ -142,8 +142,10 @@ public class GridDTO {
         }
     }
 
-    public List<GridRowsCols> toGridRowsColsList() {
-        List<GridRowsCols> gridRowsCols = new ArrayList<>();
+    public List<GridRowCol> toGridRowColList() {
+        List<GridRowCol> gridRowsCols = new ArrayList<>();
+        List<GridRowCol> cols = new ArrayList<>();
+        List<GridRowCol> rows = new ArrayList<>();
 
         for (int y = 0; y < grid.length; y++) {
             StringBuilder content = new StringBuilder();
@@ -156,8 +158,7 @@ public class GridDTO {
                 }
             }
 
-            if (content.toString().matches("^.*[A-Z].*$"))
-                gridRowsCols.add(new GridRowsCols(content.toString(), y, false));
+            buildColsAndRows(rows, y, content, false);
         }
 
         for (int x = 0; x < grid[0].length; x++) {
@@ -171,15 +172,53 @@ public class GridDTO {
                 }
             }
 
-            if (content.toString().matches("^.*[A-Z].*$"))
-                gridRowsCols.add(new GridRowsCols(content.toString(), x, true));
+            buildColsAndRows(cols, x, content, true);
         }
+
+        gridRowsCols.addAll(rows);
+        gridRowsCols.addAll(cols);
 
         return gridRowsCols;
     }
 
+    private String bonusOrLetter(int y, int x) {
+        String value;
+
+        if (Arrays.stream(gridType.getDoubleLetter())
+                .anyMatch(coords -> coords[0] == y && coords[1] == x))
+            value = Bonus.DOUBLE_LETTER;
+        else if (Arrays.stream(gridType.getTripleLetter())
+                .anyMatch(coords -> coords[0] == y && coords[1] == x))
+            value = Bonus.TRIPLE_LETTER;
+        else if (Arrays.stream(gridType.getDoubleWord())
+                .anyMatch(coords -> coords[0] == y && coords[1] == x))
+            value = Bonus.DOUBLE_WORD;
+        else if (Arrays.stream(gridType.getTripleWord())
+                .anyMatch(coords -> coords[0] == y && coords[1] == x))
+            value = Bonus.TRIPLE_WORD;
+        else
+            value = ".";
+
+        return value;
+    }
+
+    private void buildColsAndRows(List<GridRowCol> gridRowsOrCols, int index, StringBuilder content, boolean vertical) {
+        if (content.toString().matches("^.*[A-Z].*$")) {
+            GridRowCol newGridRowCol = new GridRowCol(content.toString(), index, vertical);
+
+            if (!gridRowsOrCols.isEmpty()) {
+                GridRowCol previousGridRowCol = gridRowsOrCols.getLast();
+                previousGridRowCol.setNextGridRowCol(newGridRowCol);
+                newGridRowCol.setPreviousGridRowCol(previousGridRowCol);
+            }
+
+            gridRowsOrCols.add(newGridRowCol);
+        }
+    }
+
     public List<GridEntry> toGridEntriesList() {
         List<GridEntry> entries = new ArrayList<>();
+
         for (int y = 0; y < grid.length; y++) {
             for (int x = 0; x < grid[y].length; x++) {
                 if (!grid[y][x].isEmpty() && (x == 0 || grid[y][x - 1].isEmpty())) {
@@ -209,6 +248,7 @@ public class GridDTO {
                 }
             }
         }
+
         return entries;
     }
 
@@ -227,26 +267,5 @@ public class GridDTO {
                 ", blankTiles=" + toJson(blankTiles) + '\'' +
                 ", language=" + language +
                 '}';
-    }
-
-    private String bonusOrLetter(int y, int x) {
-        String value;
-
-        if (Arrays.stream(gridType.getDoubleLetter())
-                .anyMatch(coords -> coords[0] == y && coords[1] == x))
-            value = Bonus.DOUBLE_LETTER;
-        else if (Arrays.stream(gridType.getTripleLetter())
-                .anyMatch(coords -> coords[0] == y && coords[1] == x))
-            value = Bonus.TRIPLE_LETTER;
-        else if (Arrays.stream(gridType.getDoubleWord())
-                .anyMatch(coords -> coords[0] == y && coords[1] == x))
-            value = Bonus.DOUBLE_WORD;
-        else if (Arrays.stream(gridType.getTripleWord())
-                .anyMatch(coords -> coords[0] == y && coords[1] == x))
-            value = Bonus.TRIPLE_WORD;
-        else
-            value = ".";
-
-        return value;
     }
 }
