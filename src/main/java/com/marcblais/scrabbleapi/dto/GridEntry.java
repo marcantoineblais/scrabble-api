@@ -56,6 +56,24 @@ public class GridEntry {
         this.vertical = vertical;
     }
 
+    public boolean isBefore(int y, int x, boolean vertical) {
+        if (this.vertical == vertical)
+            return false;
+        else if (this.vertical)
+            return this.x == x && this.getLastY() == y - 1;
+        else
+            return this.y == y && this.getLastX() == x - 1;
+    }
+
+    public boolean isAfter(int y, int x, boolean vertical) {
+        if (this.vertical == vertical)
+            return false;
+        else if (this.vertical)
+            return this.x == x && this.getY() == y + 1;
+        else
+            return this.y == y && this.getX() == x + 1;
+    }
+
     @Override
     public String toString() {
         return "GridEntry{" +

@@ -194,31 +194,108 @@ public class GameController {
             entriesByGridRowsCols.put(gridRowCol, entriesByIndex);
         }
 
-        // For every entries in the grid contents, test if the entry is forming another word perpendicular to it.
+        // For every entries in the grid contents, create a solution object and fill their adjacent solution list
         // Create a new thread for every dictionary entry in the set
-        // Filter the grid content for every gridRowCol and sort them by coordinates
-        Queue<Thread> solutionsForGridRowsColsThreads = new ArrayDeque<>();
-        ThreadGroup threadGroupForGridRowsCols = new ThreadGroup("gridRowsCols");
-        Set<Solution> solutions = new HashSet<>();
+        Queue<Thread> solutionsBuildingThreads = new ArrayDeque<>();
+        ThreadGroup threadGroupForSolutionsBuilding = new ThreadGroup("solutionsBuilding");
+        Set<Solution> unfilteredSolutions = new HashSet<>();
         for (GridRowsCols gridRowCol : entriesByGridRowsCols.keySet()) {
             Map<Integer, Set<DictionaryEntry>> map = entriesByGridRowsCols.get(gridRowCol);
 
             for (Integer index : map.keySet()) {
+                int y = gridRowCol.isVertical() ? index : gridRowCol.getIndex();
+                int x = gridRowCol.isVertical() ? gridRowCol.getIndex() : index;
+
                 for (DictionaryEntry entry : map.get(index)) {
-                    Thread thread = new Thread(threadGroupForGridRowsCols, () -> {
-                       // CREATE THREAD TO FIND SOLUTIONS
+                    Thread thread = new Thread(threadGroupForSolutionsBuilding, () -> {
+                        Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
+
+                        for (int i = 0; i < entry.getWord().length(); i++) {
+                            int offSetY = gridRowCol.isVertical() ? i : 0;
+                            int offSetX = gridRowCol.isVertical() ? 0 : i;
+
+                            GridEntry beforeEntry = gridEntries.stream()
+                                    .filter(e -> e.isBefore(y + offSetY, x + offSetX, gridRowCol.isVertical()))
+                                    .findFirst()
+                                    .orElse(null);
+
+                            GridEntry afterEntry = gridEntries.stream()
+                                    .filter(e -> e.isAfter(y + offSetY, x + offSetX, gridRowCol.isVertical()))
+                                    .findFirst()
+                                    .orElse(null);
+
+                            String beforeString = beforeEntry == null ? "" : beforeEntry.getEntry();
+                            String afterString = afterEntry == null ? "" : afterEntry.getEntry();
+
+                            String adjacentWord = beforeString + entry.getWord().charAt(i) + afterString;
+
+                            if (adjacentWord.length() > 1)
+                                adjacentSolutions.put(i, new AdjacentSolution(adjacentWord));
+                        }
+
+                        Solution solution = new Solution(
+                                entry,
+                                gridRowCol,
+                                adjacentSolutions,
+                                gridRowCol.getContent().substring(index, index + entry.getWord().length()),
+                                gridRowCol.isVertical(),
+                                x,
+                                y
+                        );
+
+                        synchronized (unfilteredSolutions) {
+                            unfilteredSolutions.add(solution);
+                        }
                     });
+
+                    solutionsBuildingThreads.add(thread);
                 }
             }
         }
+        try {
+            ThreadsRunner.runThreads(solutionsBuildingThreads, threadGroupForSolutionsBuilding);
+        } catch (Exception ignored) {}
 
-//        SolutionsFinder solutionsFinder = new SolutionsFinder(grid, entries, gridContents);
-//        Set<Solution> solutions = solutionsFinder.toSolutions();
-//        PointCalculator pointCalculator = new PointCalculator(grid, solutions, lettersValue);
-//        pointCalculator.calculatePoints();
-//
-//        List<Solution> bestSolutions = pointCalculator.findTopSolutions(10);
-//        return new ResponseEntity<>(bestSolutions, HttpStatus.OK);
+        // Create a set of words containing all the adjacent solutions
+        Set<String> allAdjacentSolutionsWords = new HashSet<>();
+        for (Solution solution : unfilteredSolutions) {
+            for (AdjacentSolution adjacentSolution : solution.getAdjacentSolutions().values()) {
+                allAdjacentSolutionsWords.add(adjacentSolution.getWord());
+            }
+        }
+
+        // Test every word in the set and create a set with every valid words
+        // Create a new thread for every word to test
+        Set<String> allValidAdjacentSolutionsWords = new HashSet<>();
+        Queue<Thread> adjacentSolutionsTestingThreads = new ArrayDeque<>();
+        ThreadGroup threadGroupForTestingAdjacentSolutions = new ThreadGroup("adjacentSolutionTest");
+
+        for (String word : allAdjacentSolutionsWords) {
+            Thread thread = new Thread(threadGroupForTestingAdjacentSolutions , () -> {
+               if (entries.stream().anyMatch(e -> e.getWord().equals(word)))
+                   synchronized (allValidAdjacentSolutionsWords) {
+                        allValidAdjacentSolutionsWords.add(word);
+                   }
+            });
+
+            adjacentSolutionsTestingThreads.add(thread);
+        }
+
+        try {
+            ThreadsRunner.runThreads(adjacentSolutionsTestingThreads, threadGroupForTestingAdjacentSolutions);
+        } catch (Exception ignored) {}
+
+
+        // Test every solutions and remove the ones with invalid adjacent entry words
+        Set<Solution> validSolutions = unfilteredSolutions.stream()
+                .filter(s -> s.getAdjacentSolutions()
+                        .values()
+                        .stream()
+                        .allMatch(as -> allValidAdjacentSolutionsWords.contains(as.getWord()))
+                ).collect(Collectors.toSet());
+
+        validSolutions.forEach(System.out::println);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

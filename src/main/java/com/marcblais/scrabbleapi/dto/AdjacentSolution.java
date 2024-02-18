@@ -3,23 +3,23 @@ package com.marcblais.scrabbleapi.dto;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 
 public class AdjacentSolution {
-    private DictionaryEntry entry;
+    private String word;
     private int points;
 
     public AdjacentSolution() {
     }
 
-    public AdjacentSolution(DictionaryEntry entry) {
-        this.entry = entry;
+    public AdjacentSolution(String word) {
+        this.word = word;
         this.points = 0;
     }
 
-    public DictionaryEntry getEntry() {
-        return entry;
+    public String getWord() {
+        return word;
     }
 
-    public void setEntry(DictionaryEntry entry) {
-        this.entry = entry;
+    public void setWord(String word) {
+        this.word = word;
     }
 
     public int getPoints() {
@@ -30,10 +30,11 @@ public class AdjacentSolution {
         this.points = points;
     }
 
+
     @Override
     public String toString() {
         return "AdjacentSolution{" +
-                "entry=" + entry +
+                "word='" + word + '\'' +
                 ", points=" + points +
                 '}';
     }

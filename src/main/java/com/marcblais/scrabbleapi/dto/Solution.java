@@ -142,12 +142,13 @@ public class Solution implements Comparable<Solution> {
     public String toString() {
         return "Solution{" +
                 "entry=" + entry +
+                ", gridRowsCols=" + gridRowsCols +
+                ", adjacentSolutions=" + adjacentSolutions +
+                ", pattern='" + pattern + '\'' +
+                ", vertical=" + vertical +
                 ", x=" + x +
                 ", y=" + y +
-                ", vertical=" + vertical +
                 ", points=" + points +
-                ", adjacentSolutions=" + adjacentSolutions +
-                ", gridContent=" + gridRowsCols +
                 ", blankTiles=" + blankTiles +
                 '}';
     }
