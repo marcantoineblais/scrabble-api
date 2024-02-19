@@ -179,7 +179,7 @@ public class GridDTO {
         return gridRowsCols;
     }
 
-    private String bonusOrLetter(int y, int x) {
+    public String bonusOrLetter(int y, int x) {
         String value;
 
         if (Arrays.stream(gridType.getDoubleLetter())

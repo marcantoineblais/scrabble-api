@@ -46,8 +46,14 @@ public class SolutionService {
         List<GridRowCol> gridRowsCols = grid.toGridRowColList();
 
         // Creer la liste des patterns pour chaque GridRowsCols
-        Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsCols = new HashMap<>();
-        gridRowsCols.forEach(g -> patternsByGridRowsCols.put(g, g.testPatterns(grid.getPlayerLetters())));
+        Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsCols;
+        if (gridRowsCols.isEmpty()) {
+            patternsByGridRowsCols = patternForFirstMove(grid);
+        } else {
+            Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsColsFinal = new HashMap<>();
+            gridRowsCols.forEach(g -> patternsByGridRowsColsFinal.put(g, g.testPatterns(grid.getPlayerLetters())));
+            patternsByGridRowsCols = patternsByGridRowsColsFinal;
+        }
 
         // Creer la liste des entries qui sont deja sur la grid
         List<GridEntry> gridEntries = createGridEntries(gridRowsCols);
@@ -103,6 +109,40 @@ public class SolutionService {
         }
 
         return gridEntries;
+    }
+
+    private Map<GridRowCol, Map<Integer, List<String>>> patternForFirstMove(GridDTO grid) {
+        Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsCols = new HashMap<>();
+        Map<Integer, List<String>> patternsByIndex = new HashMap<>();
+        int gridMiddle = grid.getGrid().length / 2;
+        StringBuilder content = new StringBuilder();
+
+        for (int i = 0; i < grid.getGrid().length; i++) {
+            content.append(grid.bonusOrLetter(gridMiddle, i));
+        }
+
+        GridRowCol gridRowCol = new GridRowCol(content.toString(), gridMiddle, false);
+        String playerLetters = grid.getPlayerLetters();
+
+        for (int i = gridMiddle - playerLetters.length() + 1; i < grid.getPlayerLetters().length(); i++) {
+            List<String> patterns = new ArrayList<>();
+            StringBuilder builder = new StringBuilder();
+            int j = i;
+
+            while (j < grid.getGrid().length && j < playerLetters.length() + i) {
+                builder.append(grid.bonusOrLetter(gridMiddle, j));
+
+                if (j >= gridMiddle)
+                    patterns.add(builder.toString());
+
+                j++;
+            }
+
+            patternsByIndex.put(i, patterns);
+        }
+
+        patternsByGridRowsCols.put(gridRowCol, patternsByIndex);
+        return patternsByGridRowsCols;
     }
 
     private Set<String> findUniquePattern(Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsCols) {
