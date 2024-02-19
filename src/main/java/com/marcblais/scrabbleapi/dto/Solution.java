@@ -119,6 +119,26 @@ public class Solution implements Comparable<Solution> {
         this.blankTiles = blankTiles;
     }
 
+    public int getLastY() {
+        return isVertical() ? y + entry.getWord().length() - 1 : y;
+    }
+
+    public int getLastX() {
+        return isVertical() ? x : x + entry.getWord().length() - 1;
+    }
+
+    public void assignBlankTiles() {
+        if (gridRowCol.getBlankTiles().isEmpty())
+            return;
+
+        for (Integer i : gridRowCol.getBlankTiles()) {
+            if (vertical && i >= y && i <= getLastY())
+                blankTiles.add(i - y);
+            else if (!vertical && i >= x && i <= getLastX())
+                blankTiles.add(i - x);
+        }
+    }
+
     @Override
     public int compareTo(Solution o) {
         if (o == null)

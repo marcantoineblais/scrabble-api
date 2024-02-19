@@ -8,17 +8,66 @@ import com.marcblais.scrabbleapi.entities.LettersValue;
 import java.util.*;
 
 public class PointCalculator {
-    public static void calculatePointsForSolutions(Solution solution, LettersValue lettersValue) {
-        solution.setPoints(calculateBasePoint(solution.getEntry().getWord(), lettersValue));
+    public static void calculatePointsForSolutions(Solution solution, LettersValue lettersValue, String jokers) {
+        chooseBestPositionForJokers(solution, jokers);
+        solution.setPoints(calculateBasePoint(solution.getBlankTiles(), solution.getEntry().getWord(), lettersValue));
         calculateAjdacentSolutionBasePoint(solution, lettersValue);
         calculateBonus(solution, lettersValue);
     }
 
-    private static int calculateBasePoint(String word, LettersValue lettersValue) {
+    private static void chooseBestPositionForJokers(Solution solution, String jokers) {
+        String word = solution.getEntry().getWord();
+        String[] bonus = solution.getPattern().split("");
+
+        if (jokers.isBlank())
+            return;
+
+        for (String joker : jokers.split("")) {
+            List<Integer> availablePositions = new ArrayList<>();
+            Integer bestPosition = null;
+            int bestPositionScore = 0;
+
+            int lastIndex = word.lastIndexOf(joker);
+            int i = 0;
+
+            while (i >= 0 && i <= lastIndex) {
+                i = word.indexOf(joker, i);
+                availablePositions.add(i);
+                i++;
+            }
+
+            for (Integer index : availablePositions) {
+                if (bonus[index].matches("[A-Z]") || solution.getBlankTiles().contains(index))
+                    continue;
+
+                int currentPositionScore;
+
+                switch (bonus[index]) {
+                    case Bonus.DOUBLE_LETTER -> currentPositionScore = 1;
+                    case Bonus.TRIPLE_LETTER -> currentPositionScore = 2;
+                    default -> currentPositionScore = 3;
+                }
+
+                if (solution.getAdjacentSolutions().containsKey(index) && currentPositionScore < 3)
+                    currentPositionScore = 0;
+
+                if (bestPosition == null || currentPositionScore > bestPositionScore) {
+                    bestPosition = index;
+                    bestPositionScore = currentPositionScore;
+                }
+            }
+
+            solution.getBlankTiles().add(bestPosition);
+        }
+    }
+
+    private static int calculateBasePoint(List<Integer> blankTiles, String word, LettersValue lettersValue) {
+        String[] letters = word.split("");
         int points = 0;
 
-        for (String letter : word.split("")) {
-            points += lettersValue.getPoints().getOrDefault(letter, 0);
+        for (int i = 0; i < letters.length; i++) {
+            if (!blankTiles.contains(i))
+                points += lettersValue.getPoints().getOrDefault(letters[i], 0);
         }
 
         return points;
@@ -26,7 +75,9 @@ public class PointCalculator {
 
     private static void calculateAjdacentSolutionBasePoint(Solution solution, LettersValue lettersValue) {
         for (AdjacentSolution adjacentSolution : solution.getAdjacentSolutions().values()) {
-            adjacentSolution.setPoints(calculateBasePoint(adjacentSolution.getWord(), lettersValue));
+            adjacentSolution.setPoints(
+                    calculateBasePoint(adjacentSolution.getBlankTiles(), adjacentSolution.getWord(), lettersValue)
+            );
         }
     }
 
@@ -38,7 +89,7 @@ public class PointCalculator {
 
         for (int i = 0; i < letters.length; i++) {
             AdjacentSolution adjacentSolution = solution.getAdjacentSolutions().get(i);
-            int points = pointMap.getOrDefault(letters[i], 0);
+            int points = !solution.getBlankTiles().contains(i) ? pointMap.getOrDefault(letters[i], 0) : 0;
 
             switch (bonus[i]) {
                 case Bonus.DOUBLE_LETTER:

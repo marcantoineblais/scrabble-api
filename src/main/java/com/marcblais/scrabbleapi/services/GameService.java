@@ -11,37 +11,13 @@ import java.util.Set;
 
 @Service
 public class GameService {
-
-    private final DictionaryEntryRepo dictionaryEntryRepo;
-    private final LanguageRepo languageRepo;
-    private final PointsRepo pointsRepo;
     private final GridRepo gridRepo;
-    private final GridTypeRepo gridTypeRepo;
     private final PlayerRepo playerRepo;
 
     @Autowired
-    public GameService(
-            DictionaryEntryRepo dictionaryEntryRepo,
-            LanguageRepo languageRepo,
-            PointsRepo pointsRepo,
-            GridRepo gridRepo,
-            GridTypeRepo gridTypeRepo,
-            PlayerRepo playerRepo
-    ) {
-        this.dictionaryEntryRepo = dictionaryEntryRepo;
-        this.languageRepo = languageRepo;
-        this.pointsRepo = pointsRepo;
+    public GameService(GridRepo gridRepo, PlayerRepo playerRepo) {
         this.gridRepo = gridRepo;
-        this.gridTypeRepo = gridTypeRepo;
         this.playerRepo = playerRepo;
-    }
-
-    public Set<DictionaryEntry> findWordsByLanguage(Language language) {
-        return dictionaryEntryRepo.findByLanguages(language);
-    }
-
-    public LettersValue findLettersValueByLanguage(Language language) {
-        return pointsRepo.findByLanguage(language);
     }
 
     public void saveGrid(Grid grid) {
@@ -54,9 +30,5 @@ public class GameService {
 
     public Player findPlayerByUsername(String username) {
         return playerRepo.findById(username).orElse(null);
-    }
-
-    public Language findLanguageByName(String name) {
-        return languageRepo.findByName(name).orElse(null);
     }
 }

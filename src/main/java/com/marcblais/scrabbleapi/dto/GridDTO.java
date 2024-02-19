@@ -151,11 +151,10 @@ public class GridDTO {
             StringBuilder content = new StringBuilder();
 
             for (int x = 0; x < grid[y].length; x++) {
-                if (grid[y][x].isEmpty()) {
+                if (grid[y][x].isEmpty())
                     content.append(bonusOrLetter(y, x));
-                } else {
+                else
                     content.append(grid[y][x]);
-                }
             }
 
             buildColsAndRows(rows, y, content, false);
@@ -165,11 +164,10 @@ public class GridDTO {
             StringBuilder content = new StringBuilder();
 
             for (int y = 0; y < grid.length; y++) {
-                if (grid[y][x].isEmpty()) {
+                if (grid[y][x].isEmpty())
                     content.append(bonusOrLetter(y, x));
-                } else {
+                else
                     content.append(grid[y][x]);
-                }
             }
 
             buildColsAndRows(cols, x, content, true);
@@ -205,6 +203,11 @@ public class GridDTO {
     private void buildColsAndRows(List<GridRowCol> gridRowsOrCols, int index, StringBuilder content, boolean vertical) {
         if (content.toString().matches("^.*[A-Z].*$")) {
             GridRowCol newGridRowCol = new GridRowCol(content.toString(), index, vertical);
+            newGridRowCol.setBlankTiles(Arrays.stream(blankTiles)
+                    .filter(bt -> newGridRowCol.isVertical() ? newGridRowCol.getIndex() == bt[1] : newGridRowCol.getIndex() == bt[0])
+                    .map(bt -> newGridRowCol.isVertical() ? bt[0] : bt[1])
+                    .toList()
+            );
 
             if (!gridRowsOrCols.isEmpty()) {
                 GridRowCol previousGridRowCol = gridRowsOrCols.getLast();
@@ -214,42 +217,6 @@ public class GridDTO {
 
             gridRowsOrCols.add(newGridRowCol);
         }
-    }
-
-    public List<GridEntry> toGridEntriesList() {
-        List<GridEntry> entries = new ArrayList<>();
-
-        for (int y = 0; y < grid.length; y++) {
-            for (int x = 0; x < grid[y].length; x++) {
-                if (!grid[y][x].isEmpty() && (x == 0 || grid[y][x - 1].isEmpty())) {
-                    StringBuilder verticalEntry = new StringBuilder();
-                    verticalEntry.append(grid[y][x]);
-                    int i = x + 1;
-
-                    while (i < grid[y].length && !grid[y][i].isEmpty()) {
-                        verticalEntry.append(grid[y][i]);
-                        i++;
-                    }
-
-                    entries.add(new GridEntry(verticalEntry.toString(), y, x, false));
-                }
-
-                if (!grid[y][x].isEmpty() && (y == 0 || grid[y - 1][x].isEmpty())) {
-                    StringBuilder horizontalEntry = new StringBuilder();
-                    horizontalEntry.append(grid[y][x]);
-                    int i = y + 1;
-
-                    while (i < grid[y].length && !grid[i][x].isEmpty()) {
-                        horizontalEntry.append(grid[i][x]);
-                        i++;
-                    }
-
-                    entries.add(new GridEntry(horizontalEntry.toString(), y, x, true));
-                }
-            }
-        }
-
-        return entries;
     }
 
     public Grid toGrid() {
