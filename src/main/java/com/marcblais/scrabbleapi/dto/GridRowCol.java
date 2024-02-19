@@ -162,7 +162,7 @@ public class GridRowCol {
 
                 i++;
 
-                while (letters[i].matches("[A-Z]") && i < letters.length) {
+                while (i < letters.length && letters[i].matches("[A-Z]")) {
                     builder.append(letters[i]);
 
                     if (blankTiles.contains(i))
