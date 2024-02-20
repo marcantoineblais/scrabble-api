@@ -40,16 +40,7 @@ public class PointCalculator {
                 if (bonus[index].matches("[A-Z]") || solution.getBlankTiles().contains(index))
                     continue;
 
-                int currentPositionScore;
-
-                switch (bonus[index]) {
-                    case Bonus.DOUBLE_LETTER -> currentPositionScore = 1;
-                    case Bonus.TRIPLE_LETTER -> currentPositionScore = 2;
-                    default -> currentPositionScore = 3;
-                }
-
-                if (solution.getAdjacentSolutions().containsKey(index) && currentPositionScore < 3)
-                    currentPositionScore = 0;
+                int currentPositionScore = getPositionScore(solution, index, bonus);
 
                 if (bestPosition == null || currentPositionScore > bestPositionScore) {
                     bestPosition = index;
@@ -59,6 +50,24 @@ public class PointCalculator {
 
             solution.getBlankTiles().add(bestPosition);
         }
+    }
+
+    private static int getPositionScore(Solution solution, Integer index, String[] bonus) {
+        int currentPositionScore;
+
+        switch (bonus[index]) {
+            case Bonus.DOUBLE_LETTER, Bonus.DOUBLE_WORD -> currentPositionScore = 2;
+            case Bonus.TRIPLE_LETTER, Bonus.TRIPLE_WORD -> currentPositionScore = 1;
+            default -> currentPositionScore = 3;
+        }
+
+        if (solution.getAdjacentSolutions().containsKey(index)) {
+            if (currentPositionScore < 3)
+                currentPositionScore = 0;
+            else
+                currentPositionScore = 2;
+        }
+        return currentPositionScore;
     }
 
     private static int calculateBasePoint(List<Integer> blankTiles, String word, LettersValue lettersValue) {
