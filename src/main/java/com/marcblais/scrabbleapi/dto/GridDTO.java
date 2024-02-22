@@ -130,6 +130,8 @@ public class GridDTO {
         }
 
         this.grid = rows;
+        this.playerLetters = "";
+        this.blankTiles = new Integer[][]{};
     }
 
     public <T> String toJson(T value) {
