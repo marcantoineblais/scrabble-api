@@ -62,10 +62,7 @@ public class PointCalculator {
         }
 
         if (solution.getAdjacentSolutions().containsKey(index)) {
-            if (currentPositionScore < 3)
-                currentPositionScore = 0;
-            else
-                currentPositionScore = 2;
+            currentPositionScore -= 1;
         }
         return currentPositionScore;
     }
@@ -83,10 +80,17 @@ public class PointCalculator {
     }
 
     private static void calculateAjdacentSolutionBasePoint(Solution solution, LettersValue lettersValue) {
-        for (AdjacentSolution adjacentSolution : solution.getAdjacentSolutions().values()) {
+        for (Integer index : solution.getAdjacentSolutions().keySet()) {
+            AdjacentSolution adjacentSolution = solution.getAdjacentSolutions().get(index);
             adjacentSolution.setPoints(
                     calculateBasePoint(adjacentSolution.getBlankTiles(), adjacentSolution.getWord(), lettersValue)
             );
+
+            if (solution.getBlankTiles().contains(index)) {
+                String letter = solution.getEntry().getWord().substring(index, index + 1);
+                int pointsToRemove = lettersValue.getPoints().getOrDefault(letter, 0);
+                adjacentSolution.setPoints(adjacentSolution.getPoints() - pointsToRemove);
+            }
         }
     }
 
