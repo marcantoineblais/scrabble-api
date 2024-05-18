@@ -56,6 +56,13 @@ public class SolutionService {
             patternsByGridRowsCols = patternsByGridRowsColsFinal;
         }
 
+        // Remplacer les espaces par des points dans les lettres du joueurs pour marquer les jokers
+        String[] playerLetters = grid.getPlayerLetters();
+        for (int i = 0; i < playerLetters.length; i++) {
+            playerLetters[i] = playerLetters[i].replace(" ", ".");
+        }
+        grid.setPlayerLetters(playerLetters);
+
         // Creer la liste des entries qui sont deja sur la grid
         List<GridEntry> gridEntries = createGridEntries(gridRowsCols);
 
@@ -163,25 +170,24 @@ public class SolutionService {
         Queue<Thread> entriesByPatternThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForEntriesByPattern = new ThreadGroup("entryByPattern");
         String playerLetters = String.join("", grid.getPlayerLetters());
+
         for (String pattern : uniquePatterns) {
-//            Thread thread = new Thread(threadGroupForEntriesByPattern, () -> {
-            Set<DictionaryEntry> entriesForPattern = DictionnaryEntriesFinder.findEntriesByPattern(
-                    pattern, playerLetters, entries
-            );
+            Thread thread = new Thread(threadGroupForEntriesByPattern, () -> {
+                Set<DictionaryEntry> entriesForPattern = DictionnaryEntriesFinder.findEntriesByPattern(
+                        pattern, playerLetters, entries
+                );
 
-//            synchronized (entriesByPattern) {
-            System.out.println(pattern);
-                entriesByPattern.put(pattern, entriesForPattern);
-//            }
+                synchronized (entriesByPattern) {
+                    entriesByPattern.put(pattern, entriesForPattern);
+                }
+            });
+
+            entriesByPatternThreads.add(thread);
         }
-//            });
+        try {
+            ThreadsRunner.runThreads(entriesByPatternThreads, threadGroupForEntriesByPattern);
+        } catch (Exception ignored) {}
 
-//            entriesByPatternThreads.add(thread);
-//        }
-//        try {
-//            ThreadsRunner.runThreads(entriesByPatternThreads, threadGroupForEntriesByPattern);
-//        } catch (Exception ignored) {}
-        System.out.println(entriesByPattern);
         return entriesByPattern;
     }
 
