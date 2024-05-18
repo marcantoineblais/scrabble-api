@@ -21,7 +21,7 @@ public class Grid implements Comparable<Grid> {
     @Column(length = 1000)
     private String grid;
 
-    @Column(length = 7, nullable = false)
+    @Column(length = 7)
     private String playerLetters;
 
     @ManyToOne

@@ -31,7 +31,7 @@ public class GameController {
     }
 
     @PostMapping("/grid/new")
-    public ResponseEntity<Void> createGrid(
+    public ResponseEntity<Long> createGrid(
             @CookieValue(value = "token", required = false) String token,
             @RequestBody GameOption gameOption
     ) {
@@ -58,7 +58,7 @@ public class GameController {
         player.getGrids().sort(Grid::compareTo);
 
         gameService.saveGrid(grid);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(grid.getId(), HttpStatus.OK);
     }
 
     @PostMapping("/grid")
