@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @RestController
 public class SolutionController {
 
-    private SolutionService solutionService;
+    private final SolutionService solutionService;
 
     @Autowired
     public SolutionController(SolutionService solutionService) {
@@ -38,10 +38,9 @@ public class SolutionController {
             @RequestBody GridDTO grid
     ) {
         Player player = findPlayer(token);
-        ResponseEntity<List<Solution>> responseEntity = playerLoggedIn(player);
 
-        if (responseEntity != null)
-            return responseEntity;
+        if (player == null)
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
         // Recuperer la valeur des lettres
         LettersValue lettersValue = solutionService.findLettersValueByLanguage(grid.getLanguage());
@@ -59,19 +58,5 @@ public class SolutionController {
     private Player findPlayer(String token) {
         String username = PlayerToken.getUsernameFromJwt(token);
         return solutionService.findPlayerByUsername(username);
-    }
-
-    private <T> ResponseEntity<T> playerLoggedIn(Player player) {
-        if (player == null) {
-            HttpHeaders headers = new HttpHeaders();
-            try {
-                headers.setLocation(new URI("/"));
-                return new ResponseEntity<T>(headers, HttpStatus.UNAUTHORIZED);
-            } catch (Exception ex) {
-                return new ResponseEntity<T>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
-
-        return null;
     }
 }

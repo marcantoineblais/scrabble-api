@@ -40,7 +40,7 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<PlayerDTO> login(@RequestBody PlayerLogin loginRequest, HttpServletResponse response) {
+    public ResponseEntity<Void> login(@RequestBody PlayerLogin loginRequest, HttpServletResponse response) {
         Player player = loginService.findPlayerByPlayerLogin(loginRequest);
 
         if (player == null)
@@ -54,7 +54,6 @@ public class LoginController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 
         Cookie cookie = new Cookie("token", token);
-//        cookie.setSecure(true);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
 
@@ -63,7 +62,7 @@ public class LoginController {
         response.addCookie(cookie);
 
         player.getGrids().sort(Grid::compareTo);
-        return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/logout")
@@ -106,7 +105,7 @@ public class LoginController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/authenticate")
+    @GetMapping("/getPlayer")
     public ResponseEntity<PlayerDTO> authenticate(@CookieValue(value = "token", required = false) String token) {
         if (token == null)
             return new ResponseEntity<>(HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);

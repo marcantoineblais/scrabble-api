@@ -31,15 +31,14 @@ public class GameController {
     }
 
     @PostMapping("/grid/new")
-    public ResponseEntity<PlayerDTO> createGrid(
+    public ResponseEntity<Void> createGrid(
             @CookieValue(value = "token", required = false) String token,
             @RequestBody GameOption gameOption
     ) {
         Player player = findPlayer(token);
-        ResponseEntity<PlayerDTO> responseEntity = playerLoggedIn(player);
 
-        if (responseEntity != null)
-            return responseEntity;
+        if (player == null)
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
         if (player.getGrids().size() > 7)
             return new ResponseEntity<>(HttpStatus.INSUFFICIENT_STORAGE);
@@ -60,77 +59,61 @@ public class GameController {
         player.getGrids().sort(Grid::compareTo);
 
         gameService.saveGrid(grid);
-        return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/grid")
-    public ResponseEntity<PlayerDTO> saveGame(
+    public ResponseEntity<Long> saveGame(
             @CookieValue(value = "token", required = false) String token,
             @RequestBody GridDTO gridDTO
     ) {
         Player player = findPlayer(token);
-        ResponseEntity<PlayerDTO> responseEntity = playerLoggedIn(player);
         Grid newGrid = gridDTO.toGrid();
         Grid grid;
 
-        if (responseEntity != null)
-            return responseEntity;
+        if (player == null)
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
         grid = player.findGrid(newGrid.getId());
-        if (grid != null) {
-            grid.setGrid(newGrid.getGrid());
-            grid.setPlayerLetters(newGrid.getPlayerLetters());
-            grid.setBlankTiles(newGrid.getBlankTiles());
-            grid.setLastUpdate(LocalDateTime.now());
-            player.getGrids().sort(Grid::compareTo);
-            gameService.saveGrid(grid);
-            return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
+        if (grid == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        grid.setGrid(newGrid.getGrid());
+        grid.setPlayerLetters(newGrid.getPlayerLetters());
+        grid.setBlankTiles(newGrid.getBlankTiles());
+        grid.setLastUpdate(LocalDateTime.now());
+        player.getGrids().sort(Grid::compareTo);
+        gameService.saveGrid(grid);
+        return new ResponseEntity<>(grid.getId(), HttpStatus.OK);
     }
 
-    @DeleteMapping("/grid")
-    public ResponseEntity<PlayerDTO> deleteGame(
+    @DeleteMapping("/grid/{id}")
+    public ResponseEntity<Void> deleteGame(
             @CookieValue(value = "token", required = false) String token,
-            @RequestBody GridDTO gridDTO
+            @PathVariable(name = "id") long id
     ) {
         if (token == null)
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
         Player player = findPlayer(token);
-        ResponseEntity<PlayerDTO> responseEntity = playerLoggedIn(player);
-        Grid grid = gridDTO.toGrid();
+        Grid grid;
 
-        if (responseEntity != null)
-            return responseEntity;
+        if (player == null)
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
-        grid = player.findGrid(grid.getId());
-        if (grid != null) {
-            player.getGrids().remove(grid);
-            this.gameService.deleteGrid(grid);
-            return new ResponseEntity<>(new PlayerDTO(player), HttpStatus.OK);
+        grid = player.findGrid(id);
+        if (grid == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        player.getGrids().remove(grid);
+        this.gameService.deleteGrid(grid);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     private Player findPlayer(String token) {
         String username = PlayerToken.getUsernameFromJwt(token);
         return gameService.findPlayerByUsername(username);
-    }
-
-    private <T> ResponseEntity<T> playerLoggedIn(Player player) {
-        if (player == null) {
-            HttpHeaders headers = new HttpHeaders();
-            try {
-                headers.setLocation(new URI("/"));
-                return new ResponseEntity<T>(headers, HttpStatus.UNAUTHORIZED);
-            } catch (Exception ex) {
-                return new ResponseEntity<T>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
-
-        return null;
     }
 }

@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 public class OptionsController {
 
-    private OptionsService optionsService;
+    private final OptionsService optionsService;
 
     @Autowired
     public OptionsController(OptionsService optionsService) {
