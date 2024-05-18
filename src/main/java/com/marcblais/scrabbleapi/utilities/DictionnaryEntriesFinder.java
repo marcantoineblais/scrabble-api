@@ -1,7 +1,10 @@
 package com.marcblais.scrabbleapi.utilities;
 
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
+import org.yaml.snakeyaml.util.ArrayUtils;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,12 +36,12 @@ public class DictionnaryEntriesFinder {
         return true;
     }
 
-    public static Set<DictionaryEntry> findEntriesByPlayerLetters(String playerLetters, Set<DictionaryEntry> entries) {
+    public static Set<DictionaryEntry> findEntriesByPlayerLetters(String[] playerLetters, Set<DictionaryEntry> entries) {
         Map<String, Integer> lettersCountMap =
                 LettersCounter.lettersCountMap(playerLetters);
 
         return entries.stream().filter(entry -> {
-            if (entry.getWord().length() > playerLetters.length())
+            if (entry.getWord().length() > playerLetters.length)
                 return false;
 
             return isWordMadeFromLetters(entry, lettersCountMap);
@@ -48,8 +51,8 @@ public class DictionnaryEntriesFinder {
     public static Set<DictionaryEntry> findEntriesByPattern(
             String pattern, String playerLetters, Set<DictionaryEntry> entries
     ) {
-        String letters = pattern.replace(".", "") + playerLetters;
-        Map<String, Integer> lettersCountMap = LettersCounter.lettersCountMap(letters);
+        String letters = pattern.replaceAll("[0-9.]", "") + playerLetters;
+        Map<String, Integer> lettersCountMap = LettersCounter.lettersCountMap(letters.split(""));
 
         return entries.stream().filter(entry -> {
             if (entry.getWord().length() != pattern.length())

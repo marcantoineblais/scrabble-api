@@ -14,7 +14,7 @@ public class GridDTO {
     private long id;
     private String name;
     private String[][] grid;
-    private String playerLetters;
+    private String[] playerLetters;
     private GridTypeDTO gridType;
     private Integer[][] blankTiles;
     private Language language;
@@ -29,7 +29,7 @@ public class GridDTO {
             long id,
             String name,
             String[][] grid,
-            String playerLetters,
+            String[] playerLetters,
             GridTypeDTO gridType,
             Integer[][] blankTiles,
             Language language,
@@ -49,7 +49,7 @@ public class GridDTO {
         this.id = grid.getId();
         this.name = grid.getName();
         this.grid = grid.toArray(grid.getGrid(), String[][].class);
-        this.playerLetters = grid.getPlayerLetters();
+        this.playerLetters = grid.getPlayerLettersArray();
         this.player = grid.getPlayer();
         this.gridType = new GridTypeDTO(grid.getGridType());
         this.blankTiles = grid.toArray(grid.getBlankTiles(), Integer[][].class);
@@ -80,11 +80,11 @@ public class GridDTO {
         this.grid = grid;
     }
 
-    public String getPlayerLetters() {
+    public String[] getPlayerLetters() {
         return playerLetters;
     }
 
-    public void setPlayerLetters(String playerLetters) {
+    public void setPlayerLetters(String[] playerLetters) {
         this.playerLetters = playerLetters;
     }
 
@@ -130,7 +130,7 @@ public class GridDTO {
         }
 
         this.grid = rows;
-        this.playerLetters = "";
+        this.playerLetters = new String[]{"","","","","","",""};
         this.blankTiles = new Integer[][]{};
     }
 
@@ -231,7 +231,7 @@ public class GridDTO {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", grid=" + toJson(grid) +
-                ", playerLetters='" + playerLetters + '\'' +
+                ", playerLetters='" + String.join("", playerLetters) + '\'' +
                 ", gridType=" + gridType +
                 ", blankTiles=" + toJson(blankTiles) + '\'' +
                 ", language=" + language +

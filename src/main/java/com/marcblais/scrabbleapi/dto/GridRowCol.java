@@ -77,7 +77,7 @@ public class GridRowCol {
         this.blankTiles = blankTiles;
     }
 
-    public Map<Integer, List<String>> testPatterns(String playerLetters) {
+    public Map<Integer, List<String>> testPatterns(String[] playerLetters) {
         Map<Integer, List<String>> patternsMap = new HashMap<>();
         String[] lettersArray = content.split("");
         String[] previousLettersArray = previousGridRowCol == null ? null : previousGridRowCol.getContent().split("");
@@ -87,7 +87,7 @@ public class GridRowCol {
             List<String> patterns = new ArrayList<>();
             StringBuilder builder = new StringBuilder();
             boolean isValid = false;
-            int remainingLetters = playerLetters.length();
+            int remainingLetters = playerLetters.length;
             int startIndex = i;
 
             // Add every letters until reaching a blank space
@@ -187,8 +187,6 @@ public class GridRowCol {
                 "content='" + content + '\'' +
                 ", index=" + index +
                 ", vertical=" + vertical +
-                ", previousGridRowCol=" + previousGridRowCol +
-                ", nextGridRowCol=" + nextGridRowCol +
                 ", blankTiles=" + blankTiles +
                 '}';
     }

@@ -21,7 +21,7 @@ public class Grid implements Comparable<Grid> {
     @Column(length = 1000)
     private String grid;
 
-    @Column(length = 7)
+    @Column(length = 7, nullable = false)
     private String playerLetters;
 
     @ManyToOne
@@ -87,7 +87,7 @@ public class Grid implements Comparable<Grid> {
         this.id = gridDTO.getId();
         this.name = gridDTO.getName();
         this.grid = gridDTO.toJson(gridDTO.getGrid());
-        this.playerLetters = gridDTO.getPlayerLetters();
+        this.playerLetters = String.join("", gridDTO.getPlayerLetters());
         this.gridType = gridDTO.getGridType().toGridType();
         this.blankTiles = gridDTO.toJson(gridDTO.getBlankTiles());
         this.player = gridDTO.getPlayer();
@@ -176,6 +176,26 @@ public class Grid implements Comparable<Grid> {
         }
     }
 
+    public String[] getPlayerLettersArray() {
+        String[] playerLettersArray = new String[7];
+        String[] partialArray;
+
+        if (playerLetters != null)
+            partialArray = playerLetters.split("");
+        else
+            partialArray = new String[0];
+
+        for (int i = 0; i < playerLettersArray.length; i++) {
+            if (i < partialArray.length) {
+                playerLettersArray[i] = partialArray[i];
+            } else {
+                playerLettersArray[i] = "";
+            }
+        }
+
+        return playerLettersArray;
+    }
+
     public GridDTO toGridDTO() {
         return new GridDTO(this);
     }
@@ -190,7 +210,7 @@ public class Grid implements Comparable<Grid> {
 
     @Override
     public int hashCode() {
-        return (int) (id ^ (id >>> 32));
+        return Long.hashCode(id);
     }
 
     @Override

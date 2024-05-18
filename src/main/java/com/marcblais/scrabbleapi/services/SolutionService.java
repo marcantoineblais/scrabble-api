@@ -7,6 +7,7 @@ import com.marcblais.scrabbleapi.utilities.DictionnaryEntriesFinder;
 import com.marcblais.scrabbleapi.utilities.PointCalculator;
 import com.marcblais.scrabbleapi.utilities.ThreadsRunner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -77,11 +78,9 @@ public class SolutionService {
         // Create a set of words containing all the adjacent solutions
         // Create threads for every solution to filter
         Set<String> allAdjacentSolutionsWords = findUniqueAdjacentWords(unfilteredSolutions);
-
         // Test every word in the set and create a set with every valid words
         // Create a new thread for every word to test
         Set<String> validAdjacentWords = findAllValidAdjacentWords(allAdjacentSolutionsWords, entries);
-
 
         // Test every solutions and remove the ones with invalid adjacent entry words
         Set<Solution> validSolutions = unfilteredSolutions.stream()
@@ -98,7 +97,6 @@ public class SolutionService {
         // Find the 10 best solutions and sort them
         List<Solution> solutions = PointCalculator.getNBestSolutions(validSolutions, 10);
         solutions.sort(Solution::compareTo);
-
         return solutions;
     }
 
@@ -122,14 +120,14 @@ public class SolutionService {
         }
 
         GridRowCol gridRowCol = new GridRowCol(content.toString(), gridMiddle, false);
-        String playerLetters = grid.getPlayerLetters();
+        String[] playerLetters = grid.getPlayerLetters();
 
-        for (int i = gridMiddle - playerLetters.length() + 1; i < grid.getPlayerLetters().length(); i++) {
+        for (int i = gridMiddle - playerLetters.length + 1; i < grid.getPlayerLetters().length; i++) {
             List<String> patterns = new ArrayList<>();
             StringBuilder builder = new StringBuilder();
             int j = i;
 
-            while (j < grid.getGrid().length && j < playerLetters.length() + i) {
+            while (j < grid.getGrid().length && j < playerLetters.length + i) {
                 builder.append(grid.bonusOrLetter(gridMiddle, j));
 
                 if (j >= gridMiddle)
@@ -164,24 +162,26 @@ public class SolutionService {
         Map<String, Set<DictionaryEntry>> entriesByPattern = new HashMap<>();
         Queue<Thread> entriesByPatternThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForEntriesByPattern = new ThreadGroup("entryByPattern");
+        String playerLetters = String.join("", grid.getPlayerLetters());
         for (String pattern : uniquePatterns) {
-            Thread thread = new Thread(threadGroupForEntriesByPattern, () -> {
-                Set<DictionaryEntry> entriesForPattern = DictionnaryEntriesFinder.findEntriesByPattern(
-                        pattern, grid.getPlayerLetters(), entries
-                );
+//            Thread thread = new Thread(threadGroupForEntriesByPattern, () -> {
+            Set<DictionaryEntry> entriesForPattern = DictionnaryEntriesFinder.findEntriesByPattern(
+                    pattern, playerLetters, entries
+            );
 
-                synchronized (entriesByPattern) {
-                    entriesByPattern.put(pattern, entriesForPattern);
-                }
-            });
-
-            entriesByPatternThreads.add(thread);
+//            synchronized (entriesByPattern) {
+            System.out.println(pattern);
+                entriesByPattern.put(pattern, entriesForPattern);
+//            }
         }
-        try {
-            ThreadsRunner.runThreads(entriesByPatternThreads, threadGroupForEntriesByPattern);
-        } catch (Exception ignored) {
-        }
+//            });
 
+//            entriesByPatternThreads.add(thread);
+//        }
+//        try {
+//            ThreadsRunner.runThreads(entriesByPatternThreads, threadGroupForEntriesByPattern);
+//        } catch (Exception ignored) {}
+        System.out.println(entriesByPattern);
         return entriesByPattern;
     }
 
@@ -238,8 +238,6 @@ public class SolutionService {
                 int x = gridRowCol.isVertical() ? gridRowCol.getIndex() : index;
 
                 for (DictionaryEntry entry : map.get(index)) {
-                    // I NEED TO ADD LOGIC HERE TO CREATE SOLUTION WITH BLANK TILES //
-
                     Thread thread = new Thread(threadGroupForSolutionsBuilding, () -> {
                         Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
 
@@ -345,17 +343,21 @@ public class SolutionService {
     private void calculatesPointsForSolutions(Set<Solution> validSolutions, GridDTO grid, LettersValue lettersValue) {
         Queue<Thread> pointsCalculationThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForPointsCalculation = new ThreadGroup("pointsCalculation");
+        List<String> playerLetters = List.of(grid.getPlayerLetters());
+
         for (Solution solution : validSolutions) {
             Thread thread = new Thread(threadGroupForPointsCalculation, () -> {
                 String jokers = "";
+                if (playerLetters.contains(".")) {
+                    List<String> letters = playerLetters.stream()
+                            .map(letter -> letter.replace(".", ""))
+                            .collect(Collectors.toList());
 
-                if (grid.getPlayerLetters().contains(".")) {
-                    String letters = grid.getPlayerLetters().replace(".", "") +
-                            solution.getPattern().replaceAll("[0-9.]", "");
-
+                    letters.add(Arrays.toString(solution.getPattern().split("")));
+                    letters = letters.stream().map(letter -> letter.replaceAll("[0-9.]", "")).toList();
                     jokers = solution.getEntry().getWord();
 
-                    for (String letter : letters.split("")) {
+                    for (String letter : letters) {
                         jokers = jokers.replaceFirst(letter, "");
                     }
                 }
@@ -368,6 +370,6 @@ public class SolutionService {
 
         try {
             ThreadsRunner.runThreads(pointsCalculationThreads, threadGroupForPointsCalculation);
-        } catch (Exception ignored) {};
+        } catch (Exception ignored) {}
     }
 }

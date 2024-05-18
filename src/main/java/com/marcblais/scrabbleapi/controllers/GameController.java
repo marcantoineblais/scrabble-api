@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @RestController
 public class GameController {
 
-    private GameService gameService;
+    private final GameService gameService;
 
     @Autowired
     public GameController(GameService gameService) {
@@ -50,9 +50,8 @@ public class GameController {
         gridDTO.setGridType(gameOption.getGridType());
         gridDTO.setLanguage(gameOption.getLanguage());
         gridDTO.setName(gameOption.getName().toUpperCase());
-        gridDTO.setPlayerLetters("");
+        gridDTO.setPlayerLetters(new String[]{"","","","","","",""});
         gridDTO.setPlayer(player);
-
         grid = gridDTO.toGrid();
         grid.setLastUpdate(LocalDateTime.now());
         player.getGrids().add(grid);
@@ -110,6 +109,22 @@ public class GameController {
         player.getGrids().remove(grid);
         this.gameService.deleteGrid(grid);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/grid/{id}")
+    public ResponseEntity<GridDTO> getGame(
+            @CookieValue(name = "token") String token,
+            @PathVariable(name = "id") Long id
+    ) {
+        Player player = findPlayer(token);
+        if (player == null)
+            return new ResponseEntity<>(HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);
+
+        Grid grid = player.findGrid(id);
+        if (grid == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(new GridDTO(grid), HttpStatus.OK);
     }
 
     private Player findPlayer(String token) {
