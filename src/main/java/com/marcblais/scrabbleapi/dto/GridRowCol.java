@@ -1,11 +1,17 @@
 package com.marcblais.scrabbleapi.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import java.util.*;
 
+@Setter
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GridRowCol {
-    private String content;
+    private String[] content;
     private int index;
     private boolean vertical;
 
@@ -16,84 +22,26 @@ public class GridRowCol {
     private GridRowCol nextGridRowCol;
 
     @JsonIgnore
-    private List<Integer> blankTiles;
+    @Builder.Default
+    private List<Integer> blankTiles = new ArrayList<>();
 
-    public GridRowCol() {
-        this.blankTiles = new ArrayList<>();
-    }
 
-    public GridRowCol(String content, int index, boolean vertical) {
-        this.content = content;
-        this.index = index;
-        this.vertical = vertical;
-        this.blankTiles = new ArrayList<>();
-    }
+    public Map<Integer, List<List<String>>> testPatterns(List<String> playerLetters) {
+        Map<Integer, List<List<String>>> patternsMap = new HashMap<>();
+        String[] previousLettersArray = previousGridRowCol == null ? null : previousGridRowCol.getContent();
+        String[] nextLettersArray = nextGridRowCol == null ? null : nextGridRowCol.getContent();
 
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    public boolean isVertical() {
-        return vertical;
-    }
-
-    public void setVertical(boolean vertical) {
-        this.vertical = vertical;
-    }
-
-    public GridRowCol getPreviousGridRowCol() {
-        return previousGridRowCol;
-    }
-
-    public void setPreviousGridRowCol(GridRowCol previousGridRowCol) {
-        this.previousGridRowCol = previousGridRowCol;
-    }
-
-    public GridRowCol getNextGridRowCol() {
-        return nextGridRowCol;
-    }
-
-    public void setNextGridRowCol(GridRowCol nextGridRowCol) {
-        this.nextGridRowCol = nextGridRowCol;
-    }
-
-    public List<Integer> getBlankTiles() {
-        return blankTiles;
-    }
-
-    public void setBlankTiles(List<Integer> blankTiles) {
-        this.blankTiles = blankTiles;
-    }
-
-    public Map<Integer, List<String>> testPatterns(String[] playerLetters) {
-        Map<Integer, List<String>> patternsMap = new HashMap<>();
-        String[] lettersArray = content.split("");
-        String[] previousLettersArray = previousGridRowCol == null ? null : previousGridRowCol.getContent().split("");
-        String[] nextLettersArray = nextGridRowCol == null ? null : nextGridRowCol.getContent().split("");
-
-        for (int i = 0; i < lettersArray.length; i++) {
-            List<String> patterns = new ArrayList<>();
-            StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < content.length; i++) {
+            List<List<String>> patterns = new ArrayList<>();
+            List<String> pattern = new ArrayList<>();
             boolean isValid = false;
-            int remainingLetters = playerLetters.length;
+            int remainingLetters = playerLetters.size();
             int startIndex = i;
 
             // Add every letters until reaching a blank space
-            if (lettersArray[i].matches("[A-Z]")) {
-                while (i < lettersArray.length && lettersArray[i].matches("[A-Z]")) {
-                    builder.append(lettersArray[i++]);
+            if (content[i].matches("[A-Z]")) {
+                while (i < content.length && content[i].matches("[A-Z]")) {
+                    pattern.add(content[i++]);
                 }
 
                 isValid = true;
@@ -102,40 +50,40 @@ public class GridRowCol {
             int j = i;
 
             // Add every pattern that contains at least one letter, every loop adds a new character to the pattern until max length is reached
-            while (remainingLetters > 0 && j < lettersArray.length) {
-                builder.append(lettersArray[j]);
+            while (remainingLetters > 0 && j < content.length) {
+                pattern.add(content[j]);
 
-                if (!lettersArray[j].matches("[A-Z]")) {
+                if (content[j].matches("[0-4.]")) {
                     remainingLetters -= 1;
 
-                    if (((previousLettersArray != null && previousLettersArray[j].matches("[A-Z]")) ||
-                            (nextLettersArray != null && nextLettersArray[j].matches("[A-Z]"))) &&
-                            ((j < lettersArray.length - 1 && !lettersArray[j + 1].matches("[A-Z]")) ||
-                            j == lettersArray.length - 1))
+                    if (((previousLettersArray != null && !previousLettersArray[j].matches("[0-4.]")) ||
+                            (nextLettersArray != null && !nextLettersArray[j].matches("[0-4.]"))) &&
+                            ((j < content.length - 1 && content[j + 1].matches("[0-4.]")) ||
+                            j == content.length - 1))
                         isValid = true;
                 } else {
-                    while (j < lettersArray.length - 1 && lettersArray[j + 1].matches("[A-Z]")) {
-                        builder.append(lettersArray[++j]);
+                    while (j < content.length - 1 && !content[j + 1].matches("[0-4.]")) {
+                        pattern.add(content[++j]);
                     }
 
                     isValid = true;
                 }
 
-                if (isValid && ((j < lettersArray.length - 1 && !lettersArray[j + 1].matches("[A-Z]")) ||
-                                j == lettersArray.length - 1))
-                    patterns.add(builder.toString());
+                if (isValid && ((j < content.length - 1 && content[j + 1].matches("[0-4.]")) ||
+                                j == content.length - 1))
+                    patterns.add(List.copyOf(pattern));
 
                 j++;
             }
 
-            if (remainingLetters == 0 && j < lettersArray.length && lettersArray[j].matches("[A-Z]")) {
-                builder.append(lettersArray[j]);
+            if (remainingLetters == 0 && j < content.length && !content[j].matches("[0-4.]")) {
+                pattern.add(content[j]);
 
-                while (j < lettersArray.length - 1 && lettersArray[j + 1].matches("[A-Z]")) {
-                    builder.append(lettersArray[++j]);
+                while (j < content.length - 1 && !content[j + 1].matches("[0-4.]")) {
+                    pattern.add(content[++j]);
                 }
                 
-                patterns.add(builder.toString());
+                patterns.add(List.copyOf(pattern));
             }
 
             if (!patterns.isEmpty())
@@ -148,22 +96,26 @@ public class GridRowCol {
 
     public List<GridEntry> toGridEntriesList() {
         List<GridEntry> entries = new ArrayList<>();
-        String[] letters = content.split("");
         int i = 0;
 
-        while (i < letters.length) {
-            if (letters[i].matches("[A-Z]")) {
-                GridEntry entry = new GridEntry("", vertical ? i : index, vertical ? index : i, vertical);
+        while (i < content.length) {
+            if (!content[i].matches("[0-4.]")) {
+                GridEntry entry = GridEntry.builder()
+                        .y(vertical ? i : index)
+                        .x(vertical ? index : i)
+                        .vertical(vertical)
+                        .build();
+
                 StringBuilder builder = new StringBuilder();
-                builder.append(letters[i]);
+                builder.append(content[i]);
 
                 if (blankTiles.contains(i))
                     entry.getBlankTiles().add(entry.isVertical() ? i - entry.getY() : i - entry.getX());
 
                 i++;
 
-                while (i < letters.length && letters[i].matches("[A-Z]")) {
-                    builder.append(letters[i]);
+                while (i < content.length && content[i].matches("[A-Z]")) {
+                    builder.append(content[i]);
 
                     if (blankTiles.contains(i))
                         entry.getBlankTiles().add(entry.isVertical() ? i - entry.getY() : i - entry.getX());
@@ -184,7 +136,7 @@ public class GridRowCol {
     @Override
     public String toString() {
         return "GridRowCol{" +
-                "content='" + content + '\'' +
+                "content='" + Arrays.toString(content) +
                 ", index=" + index +
                 ", vertical=" + vertical +
                 ", blankTiles=" + blankTiles +

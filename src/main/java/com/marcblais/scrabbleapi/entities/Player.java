@@ -2,10 +2,16 @@ package com.marcblais.scrabbleapi.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Player {
     @Id
@@ -18,7 +24,8 @@ public class Player {
 
     @OneToMany
     @JoinColumn(referencedColumnName = "username", name = "player_username")
-    private List<Grid> grids;
+    @Builder.Default
+    private List<Grid> grids = new ArrayList<>();
 
     @OneToMany
     @JoinColumn(referencedColumnName = "username", name = "player_username")
@@ -27,73 +34,6 @@ public class Player {
 
     private boolean enabled;
 
-    public Player() {
-    }
-
-    public Player(String username, String password) {
-        this.username = username;
-        this.password = password;
-        this.grids = new ArrayList<>();
-        this.roles = new ArrayList<>();
-        this.enabled = false;
-    }
-
-    public Player(String username, String password, List<Grid> grids, List<Role> roles) {
-        this.username = username;
-        this.password = password;
-        this.grids = grids;
-        this.roles = roles;
-        this.enabled = false;
-    }
-
-    public Player(String username, String password, List<Grid> grids, List<Role> roles, boolean enabled) {
-        this.username = username;
-        this.password = password;
-        this.grids = grids;
-        this.roles = roles;
-        this.enabled = enabled;
-    }
-
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public List<Grid> getGrids() {
-        return grids;
-    }
-
-    public void setGrids(List<Grid> grids) {
-        this.grids = grids;
-    }
-
-    public List<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<Role> roles) {
-        this.roles = roles;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
 
     public Grid findGrid(long id) {
         return grids.stream().filter(g -> g.getId() == id).findFirst().orElse(null);

@@ -2,9 +2,15 @@ package com.marcblais.scrabbleapi.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
+import lombok.*;
 
 import java.util.*;
 
+@Setter
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Solution implements Comparable<Solution> {
     private DictionaryEntry entry;
 
@@ -15,109 +21,16 @@ public class Solution implements Comparable<Solution> {
     private Map<Integer, AdjacentSolution> adjacentSolutions;
 
     @JsonIgnore
-    private String pattern;
+    private String[] pattern;
+
     private boolean vertical;
     private int x;
     private int y;
     private int points;
-    private List<Integer> blankTiles;
 
-    public Solution() {
-        this.adjacentSolutions = new HashMap<>();
-        this.blankTiles = new ArrayList<>();
-    }
+    @Builder.Default
+    private List<Integer> blankTiles = new ArrayList<>();
 
-    public Solution(
-            DictionaryEntry entry,
-            GridRowCol gridRowCol,
-            Map<Integer, AdjacentSolution> adjacentSolutions,
-            String pattern,
-            boolean vertical,
-            int x,
-            int y
-    ) {
-        this.entry = entry;
-        this.gridRowCol = gridRowCol;
-        this.adjacentSolutions = adjacentSolutions;
-        this.pattern = pattern;
-        this.vertical = vertical;
-        this.x = x;
-        this.y = y;
-        this.blankTiles = new ArrayList<>();
-        this.points = 0;
-    }
-
-    public DictionaryEntry getEntry() {
-        return entry;
-    }
-
-    public void setEntry(DictionaryEntry entry) {
-        this.entry = entry;
-    }
-
-    public GridRowCol getGridRowCol() {
-        return gridRowCol;
-    }
-
-    public void setGridRowCol(GridRowCol gridRowCol) {
-        this.gridRowCol = gridRowCol;
-    }
-
-    public Map<Integer, AdjacentSolution> getAdjacentSolutions() {
-        return adjacentSolutions;
-    }
-
-    public void setAdjacentSolutions(Map<Integer, AdjacentSolution> adjacentSolutions) {
-        this.adjacentSolutions = adjacentSolutions;
-    }
-
-    public String getPattern() {
-        return pattern;
-    }
-
-    public void setPattern(String pattern) {
-        this.pattern = pattern;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public boolean isVertical() {
-        return vertical;
-    }
-
-    public void setVertical(boolean vertical) {
-        this.vertical = vertical;
-    }
-
-    public int getPoints() {
-        return points;
-    }
-
-    public void setPoints(int points) {
-        this.points = points;
-    }
-
-    public List<Integer> getBlankTiles() {
-        return blankTiles;
-    }
-
-    public void setBlankTiles(List<Integer> blankTiles) {
-        this.blankTiles = blankTiles;
-    }
 
     public int getLastY() {
         return isVertical() ? y + entry.getWord().length() - 1 : y;
@@ -171,7 +84,7 @@ public class Solution implements Comparable<Solution> {
                 "entry=" + entry +
                 ", gridRowsCols=" + gridRowCol +
                 ", adjacentSolutions=" + adjacentSolutions +
-                ", pattern='" + pattern + '\'' +
+                ", pattern='" + Arrays.toString(pattern) +
                 ", vertical=" + vertical +
                 ", x=" + x +
                 ", y=" + y +

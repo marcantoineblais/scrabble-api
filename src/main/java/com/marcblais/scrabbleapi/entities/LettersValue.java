@@ -1,10 +1,16 @@
 package com.marcblais.scrabbleapi.entities;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Setter
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class LettersValue {
 
@@ -19,39 +25,6 @@ public class LettersValue {
     @ElementCollection(fetch = FetchType.EAGER)
     private Map<String, Integer> points;
 
-    public LettersValue() {
-        points = new HashMap<>();
-    }
-
-    public LettersValue(long id, Language language, Map<String, Integer> points) {
-        this.id = id;
-        this.language = language;
-        this.points = points;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public Language getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(Language language) {
-        this.language = language;
-    }
-
-    public Map<String, Integer> getPoints() {
-        return points;
-    }
-
-    public void setPoints(Map<String, Integer> points) {
-        this.points = points;
-    }
 
     @Override
     public String toString() {

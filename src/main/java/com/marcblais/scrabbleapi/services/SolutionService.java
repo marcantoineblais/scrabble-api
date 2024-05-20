@@ -4,11 +4,12 @@ import com.marcblais.scrabbleapi.dto.*;
 import com.marcblais.scrabbleapi.entities.*;
 import com.marcblais.scrabbleapi.repositories.*;
 import com.marcblais.scrabbleapi.utilities.DictionnaryEntriesFinder;
+import com.marcblais.scrabbleapi.utilities.LettersCounter;
 import com.marcblais.scrabbleapi.utilities.PointCalculator;
 import com.marcblais.scrabbleapi.utilities.ThreadsRunner;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.stereotype.Service;
+import org.yaml.snakeyaml.util.ArrayUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,31 +48,25 @@ public class SolutionService {
         List<GridRowCol> gridRowsCols = grid.toGridRowColList();
 
         // Creer la liste des patterns pour chaque GridRowsCols
-        Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsCols;
+        Map<GridRowCol, Map<Integer, List<List<String>>>> patternsByGridRowsCols = new HashMap<>();
         if (gridRowsCols.isEmpty()) {
             patternsByGridRowsCols = patternForFirstMove(grid);
         } else {
-            Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsColsFinal = new HashMap<>();
-            gridRowsCols.forEach(g -> patternsByGridRowsColsFinal.put(g, g.testPatterns(grid.getPlayerLetters())));
-            patternsByGridRowsCols = patternsByGridRowsColsFinal;
+            for (GridRowCol gridRowCol : gridRowsCols) {
+                patternsByGridRowsCols.put(gridRowCol, gridRowCol.testPatterns(grid.getPlayerLetters()));
+            }
         }
-
-        // Remplacer les espaces par des points dans les lettres du joueurs pour marquer les jokers
-        String[] playerLetters = grid.getPlayerLetters();
-        for (int i = 0; i < playerLetters.length; i++) {
-            playerLetters[i] = playerLetters[i].replace(" ", ".");
-        }
-        grid.setPlayerLetters(playerLetters);
 
         // Creer la liste des entries qui sont deja sur la grid
         List<GridEntry> gridEntries = createGridEntries(gridRowsCols);
 
         // Recuperer tous les patterns uniques
-        Set<String> uniquePatterns = findUniquePattern(patternsByGridRowsCols);
+        Set<List<String>> uniquePatterns = findUniquePattern(patternsByGridRowsCols);
 
         // Pour chaque pattern unique, trouver les mots qui sont possibles
         // Creer un nouveau thread pour chaque pattern
-        Map<String, Set<DictionaryEntry>> entriesByPattern = findWordForEachUniquePattern(grid, uniquePatterns, entries);
+        Map<List<String>, Set<DictionaryEntry>> entriesByPattern =
+                findWordForEachUniquePattern(grid, uniquePatterns, entries);
 
         // Assign every list of entries to their matching patterns by grid content
         // Create threads for every gridRowCol
@@ -85,6 +80,7 @@ public class SolutionService {
         // Create a set of words containing all the adjacent solutions
         // Create threads for every solution to filter
         Set<String> allAdjacentSolutionsWords = findUniqueAdjacentWords(unfilteredSolutions);
+
         // Test every word in the set and create a set with every valid words
         // Create a new thread for every word to test
         Set<String> validAdjacentWords = findAllValidAdjacentWords(allAdjacentSolutionsWords, entries);
@@ -116,29 +112,34 @@ public class SolutionService {
         return gridEntries;
     }
 
-    private Map<GridRowCol, Map<Integer, List<String>>> patternForFirstMove(GridDTO grid) {
-        Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsCols = new HashMap<>();
-        Map<Integer, List<String>> patternsByIndex = new HashMap<>();
+    private Map<GridRowCol, Map<Integer, List<List<String>>>> patternForFirstMove(GridDTO grid) {
+        Map<GridRowCol, Map<Integer, List<List<String>>>> patternsByGridRowsCols = new HashMap<>();
+        Map<Integer, List<List<String>>> patternsByIndex = new HashMap<>();
         int gridMiddle = grid.getGrid().length / 2;
-        StringBuilder content = new StringBuilder();
+        List<String> content = new ArrayList<>();
 
         for (int i = 0; i < grid.getGrid().length; i++) {
-            content.append(grid.bonusOrLetter(gridMiddle, i));
+            content.add(grid.bonusOrLetter(gridMiddle, i));
         }
 
-        GridRowCol gridRowCol = new GridRowCol(content.toString(), gridMiddle, false);
-        String[] playerLetters = grid.getPlayerLetters();
+        GridRowCol gridRowCol = GridRowCol.builder()
+                .content(content.toArray(String[]::new))
+                .index(gridMiddle)
+                .vertical(false)
+                .build();
 
-        for (int i = gridMiddle - playerLetters.length + 1; i < grid.getPlayerLetters().length; i++) {
-            List<String> patterns = new ArrayList<>();
-            StringBuilder builder = new StringBuilder();
+        List<String> playerLetters = grid.getPlayerLetters();
+
+        for (int i = gridMiddle - playerLetters.size() + 1; i < playerLetters.size(); i++) {
+            List<List<String>> patterns = new ArrayList<>();
+            List<String> pattern = new ArrayList<>();
             int j = i;
 
-            while (j < grid.getGrid().length && j < playerLetters.length + i) {
-                builder.append(grid.bonusOrLetter(gridMiddle, j));
+            while (j < grid.getGrid().length && j < playerLetters.size() + i) {
+                pattern.add(grid.bonusOrLetter(gridMiddle, j));
 
                 if (j >= gridMiddle)
-                    patterns.add(builder.toString());
+                    patterns.add(List.copyOf(pattern));
 
                 j++;
             }
@@ -150,12 +151,22 @@ public class SolutionService {
         return patternsByGridRowsCols;
     }
 
-    private Set<String> findUniquePattern(Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsCols) {
-        Set<String> uniquePatterns = new HashSet<>();
-        for (Map<Integer, List<String>> map : patternsByGridRowsCols.values()) {
-            for (List<String> patternsByIndex : map.values()) {
-                Set<String> patternsWithoutBonus = patternsByIndex.stream()
-                        .map(p -> p.replaceAll("[0-9]", ".")).collect(Collectors.toSet());
+    private Set<List<String>> findUniquePattern(Map<GridRowCol, Map<Integer, List<List<String>>>> patternsByGridRowsCols) {
+        Set<List<String>> uniquePatterns = new HashSet<>();
+        for (Map<Integer, List<List<String>>> map : patternsByGridRowsCols.values()) {
+            for (List<List<String>> patternsByIndex : map.values()) {
+                Set<List<String>> patternsWithoutBonus = new HashSet<>();
+
+                for (List<String> pattern : patternsByIndex) {
+                    List<String> patternWithoutBonus = new ArrayList<>();
+
+                    for (String letter : pattern) {
+                        patternWithoutBonus.add(letter.replaceAll("[0-4]", "."));
+                    }
+
+                    patternsWithoutBonus.add(patternWithoutBonus);
+                }
+
                 uniquePatterns.addAll(patternsWithoutBonus);
             }
         }
@@ -163,18 +174,17 @@ public class SolutionService {
         return uniquePatterns;
     }
 
-    private Map<String, Set<DictionaryEntry>> findWordForEachUniquePattern(
-            GridDTO grid, Set<String> uniquePatterns, Set<DictionaryEntry> entries
+    private Map<List<String>, Set<DictionaryEntry>> findWordForEachUniquePattern(
+            GridDTO grid, Set<List<String>> uniquePatterns, Set<DictionaryEntry> entries
     ) {
-        Map<String, Set<DictionaryEntry>> entriesByPattern = new HashMap<>();
+        Map<List<String>, Set<DictionaryEntry>> entriesByPattern = new HashMap<>();
         Queue<Thread> entriesByPatternThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForEntriesByPattern = new ThreadGroup("entryByPattern");
-        String playerLetters = String.join("", grid.getPlayerLetters());
 
-        for (String pattern : uniquePatterns) {
+        for (List<String> pattern : uniquePatterns) {
             Thread thread = new Thread(threadGroupForEntriesByPattern, () -> {
                 Set<DictionaryEntry> entriesForPattern = DictionnaryEntriesFinder.findEntriesByPattern(
-                        pattern, playerLetters, entries
+                        pattern, grid.getPlayerLetters(), entries
                 );
 
                 synchronized (entriesByPattern) {
@@ -184,6 +194,7 @@ public class SolutionService {
 
             entriesByPatternThreads.add(thread);
         }
+
         try {
             ThreadsRunner.runThreads(entriesByPatternThreads, threadGroupForEntriesByPattern);
         } catch (Exception ignored) {}
@@ -192,8 +203,8 @@ public class SolutionService {
     }
 
     private Map<GridRowCol, Map<Integer, Set<DictionaryEntry>>> setEntriesListByMatchingPatterns(
-            Map<GridRowCol, Map<Integer, List<String>>> patternsByGridRowsCols,
-            Map<String, Set<DictionaryEntry>> entriesByPattern
+            Map<GridRowCol, Map<Integer, List<List<String>>>> patternsByGridRowsCols,
+            Map<List<String>, Set<DictionaryEntry>> entriesByPattern
     ) {
         Map<GridRowCol, Map<Integer, Set<DictionaryEntry>>> entriesByGridRowsCols = new HashMap<>();
         Queue<Thread> patternByGridContentThreads = new ArrayDeque<>();
@@ -201,13 +212,17 @@ public class SolutionService {
         for (GridRowCol gridRowCol : patternsByGridRowsCols.keySet()) {
             Thread thread = new Thread(threadGroupForPatternByGridContent, () -> {
                 Map<Integer, Set<DictionaryEntry>> entriesByIndex = new HashMap<>();
-                Map<Integer, List<String>> map = patternsByGridRowsCols.get(gridRowCol);
+                Map<Integer, List<List<String>>> map = patternsByGridRowsCols.get(gridRowCol);
 
                 for (Integer index : map.keySet()) {
                     Set<DictionaryEntry> entriesList = new HashSet<>();
 
-                    for (String pattern : map.get(index)) {
-                        String patternWithoutBonus = pattern.replaceAll("[0-9]", ".");
+                    for (List<String> pattern : map.get(index)) {
+                        List<String> patternWithoutBonus = new ArrayList<>();
+                        for (String letter : pattern) {
+                            patternWithoutBonus.add(letter.replaceAll("[0-4]", "."));
+                        }
+
                         entriesList.addAll(entriesByPattern.get(patternWithoutBonus));
                     }
 
@@ -267,21 +282,25 @@ public class SolutionService {
                             String adjacentWord = beforeString + entry.getWord().charAt(i) + afterString;
 
                             if (adjacentWord.length() > 1) {
-                                AdjacentSolution adjacentSolution = new AdjacentSolution(adjacentWord);
+                                AdjacentSolution adjacentSolution = new AdjacentSolution(adjacentWord, 0, new ArrayList<>());
                                 adjacentSolution.assignBlankTiles(beforeEntry, afterEntry);
                                 adjacentSolutions.put(i, adjacentSolution);
                             }
                         }
 
-                        Solution solution = new Solution(
-                                entry,
-                                gridRowCol,
-                                adjacentSolutions,
-                                gridRowCol.getContent().substring(index, index + entry.getWord().length()),
-                                gridRowCol.isVertical(),
-                                x,
-                                y
-                        );
+                        String[] pattern = new String[entry.getWord().length()];
+                        System.arraycopy(gridRowCol.getContent(), index, pattern, 0, pattern.length);
+
+                        Solution solution = Solution.builder()
+                                .entry(entry)
+                                .gridRowCol(gridRowCol)
+                                .adjacentSolutions(adjacentSolutions)
+                                .pattern(pattern)
+                                .vertical(gridRowCol.isVertical())
+                                .y(y)
+                                .x(x)
+                                .build();
+
                         solution.assignBlankTiles();
 
                         synchronized (unfilteredSolutions) {
@@ -349,22 +368,21 @@ public class SolutionService {
     private void calculatesPointsForSolutions(Set<Solution> validSolutions, GridDTO grid, LettersValue lettersValue) {
         Queue<Thread> pointsCalculationThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForPointsCalculation = new ThreadGroup("pointsCalculation");
-        List<String> playerLetters = List.of(grid.getPlayerLetters());
+        List<String> playerLetters = grid.getPlayerLetters();
+        Map<String, Integer> lettersMap = LettersCounter.lettersCountMap(playerLetters);
 
         for (Solution solution : validSolutions) {
             Thread thread = new Thread(threadGroupForPointsCalculation, () -> {
-                String jokers = "";
-                if (playerLetters.contains(".")) {
-                    List<String> letters = playerLetters.stream()
-                            .map(letter -> letter.replace(".", ""))
-                            .collect(Collectors.toList());
+                List<String> jokers = new ArrayList<>();
 
-                    letters.add(Arrays.toString(solution.getPattern().split("")));
-                    letters = letters.stream().map(letter -> letter.replaceAll("[0-9.]", "")).toList();
-                    jokers = solution.getEntry().getWord();
+                if (lettersMap.containsKey("#")) {
+                    Map<String, Integer> wordMap = solution.getEntry().getLetters();
 
-                    for (String letter : letters) {
-                        jokers = jokers.replaceFirst(letter, "");
+                    for (String letter : wordMap.keySet()) {
+                        String joker = letter.repeat(wordMap.get(letter) - lettersMap.getOrDefault(letter, 0));
+                        if (!joker.isEmpty()) {
+                            jokers.addAll(List.of(joker.split("")));
+                        }
                     }
                 }
 

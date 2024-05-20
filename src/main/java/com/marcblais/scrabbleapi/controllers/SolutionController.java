@@ -54,7 +54,6 @@ public class SolutionController {
         return new ResponseEntity<>(solutions, HttpStatus.OK);
     }
 
-
     private Player findPlayer(String token) {
         String username = PlayerToken.getUsernameFromJwt(token);
         return solutionService.findPlayerByUsername(username);

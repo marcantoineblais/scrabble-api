@@ -3,10 +3,7 @@ package com.marcblais.scrabbleapi.utilities;
 import com.marcblais.scrabbleapi.entities.DictionaryEntry;
 import org.yaml.snakeyaml.util.ArrayUtils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DictionnaryEntriesFinder {
@@ -17,7 +14,7 @@ public class DictionnaryEntriesFinder {
 
     public static boolean isWordMadeFromLetters(DictionaryEntry entry, Map<String, Integer> playerLetters) {
         Map<String, Integer> entryLettersMap = entry.getLetters();
-        int blankTiles = playerLetters.getOrDefault(".", 0);
+        int blankTiles = playerLetters.getOrDefault("#", 0);
 
         for (String key : entryLettersMap.keySet()) {
             int nbLettersEntry = entryLettersMap.get(key);
@@ -36,12 +33,12 @@ public class DictionnaryEntriesFinder {
         return true;
     }
 
-    public static Set<DictionaryEntry> findEntriesByPlayerLetters(String[] playerLetters, Set<DictionaryEntry> entries) {
+    public static Set<DictionaryEntry> findEntriesByPlayerLetters(List<String> playerLetters, Set<DictionaryEntry> entries) {
         Map<String, Integer> lettersCountMap =
                 LettersCounter.lettersCountMap(playerLetters);
 
         return entries.stream().filter(entry -> {
-            if (entry.getWord().length() > playerLetters.length)
+            if (entry.getWord().length() > playerLetters.size())
                 return false;
 
             return isWordMadeFromLetters(entry, lettersCountMap);
@@ -49,16 +46,18 @@ public class DictionnaryEntriesFinder {
     }
 
     public static Set<DictionaryEntry> findEntriesByPattern(
-            String pattern, String playerLetters, Set<DictionaryEntry> entries
+            List<String> pattern, List<String> playerLetters, Set<DictionaryEntry> entries
     ) {
-        String letters = pattern.replaceAll("[0-9.]", "") + playerLetters;
-        Map<String, Integer> lettersCountMap = LettersCounter.lettersCountMap(letters.split(""));
+        List<String> letters = new ArrayList<>(playerLetters);
+        letters.addAll(pattern);
+
+        Map<String, Integer> lettersCountMap = LettersCounter.lettersCountMap(letters);
 
         return entries.stream().filter(entry -> {
-            if (entry.getWord().length() != pattern.length())
+            if (entry.getWord().length() != pattern.size())
                 return false;
 
-            if (!entry.getWord().matches("^" + pattern + "$"))
+            if (!entry.getWord().matches("^" + String.join("", pattern) + "$"))
                 return false;
 
             return isWordMadeFromLetters(entry, lettersCountMap);

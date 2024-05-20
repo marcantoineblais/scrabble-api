@@ -20,10 +20,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 public class LoginController {
-    private LoginService loginService;
+    private final LoginService loginService;
 
     @Value("${backend.url}")
     private String apiDomain;
@@ -88,9 +89,9 @@ public class LoginController {
         if (loginService.isUsernameTaken(request.getUsername()))
             return new ResponseEntity<>(HttpStatus.CONFLICT);
 
-        Player player = new Player(request.getUsername(), request.getPassword());
-        player.setPassword(PasswordEncoder.encode(player.getPassword()));
-        player.getRoles().add(new Role(player, "PLAYER"));
+        Player player = Player.builder().username(request.getUsername()).build();
+        player.setPassword(PasswordEncoder.encode(request.getPassword()));
+        player.setRoles(List.of(Role.builder().player(player).name("PLAYER").build()));
 
         String token = EmailToken.createJwtForEmail(request.getUsername(), request.getEmail());
         String url = apiDomain + "/validate?token=" + token;

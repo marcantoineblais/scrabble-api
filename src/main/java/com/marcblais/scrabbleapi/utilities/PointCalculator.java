@@ -8,21 +8,18 @@ import com.marcblais.scrabbleapi.entities.LettersValue;
 import java.util.*;
 
 public class PointCalculator {
-    public static void calculatePointsForSolutions(Solution solution, LettersValue lettersValue, String jokers) {
+    public static void calculatePointsForSolutions(Solution solution, LettersValue lettersValue, List<String> jokers) {
         chooseBestPositionForJokers(solution, jokers);
         solution.setPoints(calculateBasePoint(solution.getBlankTiles(), solution.getEntry().getWord(), lettersValue));
         calculateAjdacentSolutionBasePoint(solution, lettersValue);
         calculateBonus(solution, lettersValue);
     }
 
-    private static void chooseBestPositionForJokers(Solution solution, String jokers) {
+    private static void chooseBestPositionForJokers(Solution solution, List<String> jokers) {
         String word = solution.getEntry().getWord();
-        String[] bonus = solution.getPattern().split("");
+        String[] bonus = solution.getPattern();
 
-        if (jokers.isBlank())
-            return;
-
-        for (String joker : jokers.split("")) {
+        for (String joker : jokers) {
             List<Integer> availablePositions = new ArrayList<>();
             Integer bestPosition = null;
             int bestPositionScore = 0;
@@ -37,7 +34,7 @@ public class PointCalculator {
             }
 
             for (Integer index : availablePositions) {
-                if (bonus[index].matches("[A-Z]") || solution.getBlankTiles().contains(index))
+                if (!bonus[index].matches("[0-4.]") || solution.getBlankTiles().contains(index))
                     continue;
 
                 int currentPositionScore = getPositionScore(solution, index, bonus);
@@ -97,7 +94,7 @@ public class PointCalculator {
     private static void calculateBonus(Solution solution, LettersValue lettersValue) {
         Map<String, Integer> pointMap = lettersValue.getPoints();
         String[] letters = solution.getEntry().getWord().split("");
-        String[] bonus = solution.getPattern().split("");
+        String[] bonus = solution.getPattern();
         int wordMultiplier = 1;
 
         for (int i = 0; i < letters.length; i++) {
@@ -144,8 +141,11 @@ public class PointCalculator {
             solution.setPoints(solution.getPoints() + adjacentSolution.getPoints());
         }
 
-        if (solution.getPattern().replaceAll("[A-Z]", "").length() == 7)
+        if (solution.getEntry().getWord().length()
+                - String.join("", solution.getPattern()).replaceAll("[0-4.]", "").length()
+                == 7) {
             solution.setPoints(solution.getPoints() + pointMap.get("*"));
+        }
     }
 
     public static List<Solution> getNBestSolutions(Set<Solution> solutions, int n) {

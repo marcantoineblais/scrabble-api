@@ -4,9 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.marcblais.scrabbleapi.dto.GameOptions;
 import com.marcblais.scrabbleapi.dto.GridTypeDTO;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.Arrays;
 
+@Setter
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class GridType {
     @Id
@@ -18,16 +24,6 @@ public class GridType {
     private String doubleWord;
     private String tripleWord;
 
-    public GridType() {
-    }
-
-    public GridType(long id, String doubleLetter, String tripleLetter, String doubleWord, String tripleWord) {
-        this.id = id;
-        this.doubleLetter = doubleLetter;
-        this.tripleLetter = tripleLetter;
-        this.doubleWord = doubleWord;
-        this.tripleWord = tripleWord;
-    }
 
     public GridType(GridTypeDTO gridType) {
         this.id = gridType.getId();
@@ -37,45 +33,6 @@ public class GridType {
         this.tripleWord = gridType.bonusToString(gridType.getTripleWord());
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getDoubleLetter() {
-        return doubleLetter;
-    }
-
-    public void setDoubleLetter(String doubleLetter) {
-        this.doubleLetter = doubleLetter;
-    }
-
-    public String getTripleLetter() {
-        return tripleLetter;
-    }
-
-    public void setTripleLetter(String tripleLetter) {
-        this.tripleLetter = tripleLetter;
-    }
-
-    public String getDoubleWord() {
-        return doubleWord;
-    }
-
-    public void setDoubleWord(String doubleWord) {
-        this.doubleWord = doubleWord;
-    }
-
-    public String getTripleWord() {
-        return tripleWord;
-    }
-
-    public void setTripleWord(String tripleWord) {
-        this.tripleWord = tripleWord;
-    }
 
     public Integer[][] bonusToIntArray(String bonus) {
         ObjectMapper mapper = new ObjectMapper();

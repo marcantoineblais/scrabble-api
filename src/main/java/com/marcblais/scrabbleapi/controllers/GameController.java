@@ -4,21 +4,13 @@ import com.marcblais.scrabbleapi.dto.*;
 import com.marcblais.scrabbleapi.encryption.PlayerToken;
 import com.marcblais.scrabbleapi.entities.*;
 import com.marcblais.scrabbleapi.services.GameService;
-import com.marcblais.scrabbleapi.utilities.DictionnaryEntriesFinder;
-import com.marcblais.scrabbleapi.utilities.PointCalculator;
-import com.marcblais.scrabbleapi.utilities.ThreadsRunner;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.*;
-import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @RestController
 public class GameController {
@@ -43,27 +35,26 @@ public class GameController {
         if (player.getGrids().size() > 7)
             return new ResponseEntity<>(HttpStatus.INSUFFICIENT_STORAGE);
 
-        GridDTO gridDTO = new GridDTO();
-        Grid grid;
+        GridDTO gridDTO = GridDTO.builder()
+                .gridType(gameOption.getGridType())
+                .name(gameOption.getName().toUpperCase())
+                .language(gameOption.getLanguage())
+                .player(player)
+                .build();
         gridDTO.buildGrid();
-        gridDTO.setBlankTiles(new Integer[][]{});
-        gridDTO.setGridType(gameOption.getGridType());
-        gridDTO.setLanguage(gameOption.getLanguage());
-        gridDTO.setName(gameOption.getName().toUpperCase());
-        gridDTO.setPlayerLetters(new String[]{"","","","","","",""});
-        gridDTO.setPlayer(player);
+
+        Grid grid;
         grid = gridDTO.toGrid();
         grid.setLastUpdate(LocalDateTime.now());
-        player.getGrids().add(grid);
-        player.getGrids().sort(Grid::compareTo);
 
         gameService.saveGrid(grid);
         return new ResponseEntity<>(grid.getId(), HttpStatus.OK);
     }
 
-    @PostMapping("/grid")
+    @PostMapping("/grid/{id}")
     public ResponseEntity<Long> saveGame(
             @CookieValue(value = "token", required = false) String token,
+            @PathVariable(name = "id") Long id,
             @RequestBody GridDTO gridDTO
     ) {
         Player player = findPlayer(token);
@@ -73,7 +64,7 @@ public class GameController {
         if (player == null)
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
-        grid = player.findGrid(newGrid.getId());
+        grid = player.findGrid(id);
         if (grid == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
@@ -82,7 +73,7 @@ public class GameController {
         grid.setPlayerLetters(newGrid.getPlayerLetters());
         grid.setBlankTiles(newGrid.getBlankTiles());
         grid.setLastUpdate(LocalDateTime.now());
-        player.getGrids().sort(Grid::compareTo);
+
         gameService.saveGrid(grid);
         return new ResponseEntity<>(grid.getId(), HttpStatus.OK);
     }

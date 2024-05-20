@@ -1,50 +1,24 @@
 package com.marcblais.scrabbleapi.dto;
 
+import lombok.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GridEntry {
     private String entry;
     private int y;
     private int x;
     private boolean vertical;
-    private List<Integer> blankTiles;
 
-    public GridEntry() {
-        this.blankTiles = new ArrayList<>();
-    }
+    @Builder.Default
+    private List<Integer> blankTiles = new ArrayList<>();
 
-    public GridEntry(String entry, int y, int x, boolean vertical) {
-        this.entry = entry;
-        this.y = y;
-        this.x = x;
-        this.vertical = vertical;
-        this.blankTiles = new ArrayList<>();
-    }
-
-    public String getEntry() {
-        return entry;
-    }
-
-    public void setEntry(String entry) {
-        this.entry = entry;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
 
     public int getLastX() {
         return vertical ? x : x + entry.length() - 1;
@@ -52,22 +26,6 @@ public class GridEntry {
 
     public int getLastY() {
         return vertical ? y + entry.length() - 1 : y;
-    }
-
-    public boolean isVertical() {
-        return vertical;
-    }
-
-    public void setVertical(boolean vertical) {
-        this.vertical = vertical;
-    }
-
-    public List<Integer> getBlankTiles() {
-        return blankTiles;
-    }
-
-    public void setBlankTiles(List<Integer> blankTiles) {
-        this.blankTiles = blankTiles;
     }
 
     public boolean isBefore(int y, int x, boolean vertical) {

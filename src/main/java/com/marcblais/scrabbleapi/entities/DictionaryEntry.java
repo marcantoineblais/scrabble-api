@@ -2,12 +2,18 @@ package com.marcblais.scrabbleapi.entities;
 
 import com.marcblais.scrabbleapi.utilities.LettersCounter;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+@Setter
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class DictionaryEntry {
 
@@ -19,53 +25,12 @@ public class DictionaryEntry {
     private String word;
 
     @ManyToMany
-    private List<Language> languages;
+    @Builder.Default
+    private List<Language> languages = new ArrayList<>();
 
-    public DictionaryEntry() {
-        this.languages = new ArrayList<>();
-    }
-
-    public DictionaryEntry(String word) {
-        this.word = word;
-    }
-
-    public DictionaryEntry(long id, String word) {
-        this.id = id;
-        this.word = word;
-    }
-
-    public DictionaryEntry(long id, String word, List<Language> languages) {
-        this.id = id;
-        this.word = word;
-        this.languages = languages;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getWord() {
-        return word;
-    }
-
-    public void setWord(String word) {
-        this.word = word;
-    }
-
-    public List<Language> getLanguages() {
-        return languages;
-    }
-
-    public void setLanguage(List<Language> languages) {
-        this.languages = languages;
-    }
 
     public Map<String, Integer> getLetters() {
-        return LettersCounter.lettersCountMap(word.split(""));
+        return LettersCounter.lettersCountMap(List.of(word.split("")));
     }
 
     @Override

@@ -11,16 +11,15 @@ import java.util.Map;
 
 public class PermutationFinder {
     public static List<Solution> findPermutationOfJokerTiles(
-            String jokerLetter,
+            String[] jokerLetters,
             DictionaryEntry entry,
             GridRowCol gridRowCol,
             Map<Integer, AdjacentSolution> adjacentSolutions,
             int index,
-            String pattern
+            String[] pattern
     ) {
         List<Solution> solutions = new ArrayList<>();
-        if (jokerLetter.length() == 2) {
-            String[] jokerLetters = jokerLetter.split("");
+        if (jokerLetters.length == 2) {
             int i = 0;
             int lastIndex1 = entry.getWord().lastIndexOf(jokerLetters[0]);
             int lastIndex2 = entry.getWord().lastIndexOf(jokerLetters[1]);
@@ -32,17 +31,17 @@ public class PermutationFinder {
                     i = entry.getWord().indexOf(jokerLetters[0], i);
                     j = entry.getWord().indexOf(jokerLetters[1], j);
 
-                    if (!pattern.substring(i, i + 1).equals(jokerLetters[0]) ||
-                            !pattern.substring(j, j + 1).equals(jokerLetters[1])) {
-                        Solution solutionWithJoker = new Solution(
-                                entry,
-                                gridRowCol,
-                                adjacentSolutions,
-                                pattern,
-                                gridRowCol.isVertical(),
-                                gridRowCol.isVertical() ? gridRowCol.getIndex() : index,
-                                gridRowCol.isVertical() ? index : gridRowCol.getIndex()
-                        );
+                    if (!pattern[i].equals(jokerLetters[0]) ||
+                            !pattern[j].equals(jokerLetters[1])) {
+                        Solution solutionWithJoker = Solution.builder()
+                                .entry(entry)
+                                .gridRowCol(gridRowCol)
+                                .adjacentSolutions(adjacentSolutions)
+                                .pattern(pattern)
+                                .vertical(gridRowCol.isVertical())
+                                .y(gridRowCol.isVertical() ? gridRowCol.getIndex() : index)
+                                .x(gridRowCol.isVertical() ? index : gridRowCol.getIndex())
+                                .build();
 
                         solutionWithJoker.getBlankTiles().add(i);
                         solutionWithJoker.getBlankTiles().add(j);
@@ -54,23 +53,22 @@ public class PermutationFinder {
 
                 i++;
             }
-        } else if (jokerLetter.length() == 1) {
+        } else if (jokerLetters.length == 1) {
             int i = 0;
-            int lastIndex = entry.getWord().lastIndexOf(jokerLetter);
+            int lastIndex = entry.getWord().lastIndexOf(jokerLetters[0]);
 
             while (lastIndex >= 0 && i <= lastIndex) {
-                i = entry.getWord().indexOf(jokerLetter, i);
-                if (!pattern.substring(i, i + 1).equals(jokerLetter)) {
-                    Solution solutionWithJoker = new Solution(
-                            entry,
-                            gridRowCol,
-                            adjacentSolutions,
-                            pattern,
-                            gridRowCol.isVertical(),
-                            gridRowCol.isVertical() ? gridRowCol.getIndex() : index,
-                            gridRowCol.isVertical() ? index : gridRowCol.getIndex()
-                    );
-
+                i = entry.getWord().indexOf(jokerLetters[0], i);
+                if (!pattern[i].equals(jokerLetters[0])) {
+                    Solution solutionWithJoker = Solution.builder()
+                            .entry(entry)
+                            .gridRowCol(gridRowCol)
+                            .adjacentSolutions(adjacentSolutions)
+                            .pattern(pattern)
+                            .vertical(gridRowCol.isVertical())
+                            .y(gridRowCol.isVertical() ? gridRowCol.getIndex() : index)
+                            .x(gridRowCol.isVertical() ? index : gridRowCol.getIndex())
+                            .build();
 
                     solutionWithJoker.getBlankTiles().add(i);
                     solutions.add(solutionWithJoker);
@@ -79,15 +77,15 @@ public class PermutationFinder {
                 i++;
             }
         } else {
-            Solution solution = new Solution(
-                    entry,
-                    gridRowCol,
-                    adjacentSolutions,
-                    pattern,
-                    gridRowCol.isVertical(),
-                    gridRowCol.isVertical() ? gridRowCol.getIndex() : index,
-                    gridRowCol.isVertical() ? index : gridRowCol.getIndex()
-            );
+            Solution solution = Solution.builder()
+                    .entry(entry)
+                    .gridRowCol(gridRowCol)
+                    .adjacentSolutions(adjacentSolutions)
+                    .pattern(pattern)
+                    .vertical(gridRowCol.isVertical())
+                    .y(gridRowCol.isVertical() ? gridRowCol.getIndex() : index)
+                    .x(gridRowCol.isVertical() ? index : gridRowCol.getIndex())
+                    .build();
             solutions.add(solution);
         }
 
