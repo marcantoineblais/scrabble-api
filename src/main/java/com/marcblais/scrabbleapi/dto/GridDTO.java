@@ -18,9 +18,10 @@ import java.util.List;
 @AllArgsConstructor
 public class GridDTO {
     private long id;
+    private String uuid;
     private String name;
     private String[][] grid;
-    private List<String> playerLetters;
+    private String[] playerLetters;
     private GridTypeDTO gridType;
     private Integer[][] blankTiles;
     private Language language;
@@ -30,9 +31,10 @@ public class GridDTO {
 
     public GridDTO(Grid grid) {
         this.id = grid.getId();
+        this.uuid = grid.getUuid();
         this.name = grid.getName();
         this.grid = grid.toArray(grid.getGrid(), String[][].class);
-        this.playerLetters = grid.getPlayerLettersList();
+        this.playerLetters = grid.getPlayerLettersArray();
         this.player = grid.getPlayer();
         this.gridType = new GridTypeDTO(grid.getGridType());
         this.blankTiles = grid.toArray(grid.getBlankTiles(), Integer[][].class);
@@ -49,7 +51,7 @@ public class GridDTO {
         }
 
         this.grid = rows;
-        this.playerLetters = new ArrayList<>(List.of("","","","","","",""));
+        this.playerLetters = new String[]{"","","","","","",""};
         this.blankTiles = new Integer[][]{};
     }
 
@@ -63,35 +65,80 @@ public class GridDTO {
         }
     }
 
+    public String[][] getGridWithBonusPatterns() {
+        String[][] gridWithBonusPatterns = new String[15][15];
+        for (int y = 0; y < gridWithBonusPatterns.length; y++) {
+            for (int x = 0; x < gridWithBonusPatterns[y].length; x++) {
+                if (grid[y][x].isEmpty())
+                    gridWithBonusPatterns[y][x] = ".";
+                else
+                    gridWithBonusPatterns[y][x] = grid[y][x];
+            }
+        }
+
+        for (Integer[] coord : gridType.getDoubleLetter()) {
+            Integer y = coord[0];
+            Integer x = coord[1];
+
+            if (gridWithBonusPatterns[y][x].equals("."))
+                gridWithBonusPatterns[y][x] = Bonus.DOUBLE_LETTER;
+        }
+
+        for (Integer[] coord : gridType.getTripleLetter()) {
+            Integer y = coord[0];
+            Integer x = coord[1];
+
+            if (gridWithBonusPatterns[y][x].equals("."))
+                gridWithBonusPatterns[y][x] = Bonus.TRIPLE_LETTER;
+        }
+
+        for (Integer[] coord : gridType.getDoubleWord()) {
+            Integer y = coord[0];
+            Integer x = coord[1];
+
+            if (gridWithBonusPatterns[y][x].equals("."))
+                gridWithBonusPatterns[y][x] = Bonus.DOUBLE_WORD;
+        }
+
+        for (Integer[] coord : gridType.getTripleWord()) {
+            Integer y = coord[0];
+            Integer x = coord[1];
+
+            if (gridWithBonusPatterns[y][x].equals("."))
+                gridWithBonusPatterns[y][x] = Bonus.TRIPLE_WORD;
+        }
+
+        return gridWithBonusPatterns;
+    }
+
     public List<GridRowCol> toGridRowColList() {
         List<GridRowCol> gridRowsCols = new ArrayList<>();
         List<GridRowCol> cols = new ArrayList<>();
         List<GridRowCol> rows = new ArrayList<>();
+        String[][] gridWithBonusPatterns = getGridWithBonusPatterns();
 
         for (int y = 0; y < grid.length; y++) {
-            StringBuilder content = new StringBuilder();
+            String[] content = new String[15];
+            String[] bonus = new String[15];
 
             for (int x = 0; x < grid[y].length; x++) {
-                if (grid[y][x].isEmpty())
-                    content.append(bonusOrLetter(y, x));
-                else
-                    content.append(grid[y][x]);
+                content[x] = grid[y][x].isEmpty() ? "." : grid[y][x];
+                bonus[x] = gridWithBonusPatterns[y][x];
             }
 
-            buildColsAndRows(rows, y, content, false);
+            buildColsAndRows(rows, y, content, bonus, false);
         }
 
         for (int x = 0; x < grid[0].length; x++) {
-            StringBuilder content = new StringBuilder();
+            String[] content = new String[15];
+            String[] bonus = new String[15];
 
             for (int y = 0; y < grid.length; y++) {
-                if (grid[y][x].isEmpty())
-                    content.append(bonusOrLetter(y, x));
-                else
-                    content.append(grid[y][x]);
+                content[x] = grid[y][x].isEmpty() ? "." : grid[y][x];
+                bonus[x] = gridWithBonusPatterns[y][x];
             }
 
-            buildColsAndRows(cols, x, content, true);
+            buildColsAndRows(cols, x, content, bonus, true);
         }
 
         gridRowsCols.addAll(rows);
@@ -99,65 +146,30 @@ public class GridDTO {
         return gridRowsCols;
     }
 
-    public String bonusOrLetter(int y, int x) {
-        String value;
+    private void buildColsAndRows(List<GridRowCol> gridRowsOrCols, int index, String[] content, String[] bonus, boolean vertical) {
+        GridRowCol newGridRowCol = GridRowCol.builder()
+                .content(content)
+                .bonusContent(bonus)
+                .index(index)
+                .vertical(vertical)
+                .build();
 
-        if (Arrays.stream(gridType.getDoubleLetter())
-                .anyMatch(coords -> coords[0] == y && coords[1] == x))
-            value = Bonus.DOUBLE_LETTER;
-        else if (Arrays.stream(gridType.getTripleLetter())
-                .anyMatch(coords -> coords[0] == y && coords[1] == x))
-            value = Bonus.TRIPLE_LETTER;
-        else if (Arrays.stream(gridType.getDoubleWord())
-                .anyMatch(coords -> coords[0] == y && coords[1] == x))
-            value = Bonus.DOUBLE_WORD;
-        else if (Arrays.stream(gridType.getTripleWord())
-                .anyMatch(coords -> coords[0] == y && coords[1] == x))
-            value = Bonus.TRIPLE_WORD;
-        else
-            value = ".";
+        newGridRowCol.setBlankTiles(Arrays.stream(blankTiles)
+                .filter(bt -> newGridRowCol.isVertical() ? newGridRowCol.getIndex() == bt[1] : newGridRowCol.getIndex() == bt[0])
+                .map(bt -> newGridRowCol.isVertical() ? bt[0] : bt[1])
+                .toList()
+        );
 
-        return value;
-    }
-
-    private void buildColsAndRows(List<GridRowCol> gridRowsOrCols, int index, StringBuilder content, boolean vertical) {
-        if (content.toString().matches("^.*[A-Z].*$")) {
-            GridRowCol newGridRowCol = GridRowCol.builder()
-                    .content(content.toString().split(""))
-                    .index(index)
-                    .vertical(vertical)
-                    .build();
-
-            newGridRowCol.setBlankTiles(Arrays.stream(blankTiles)
-                    .filter(bt -> newGridRowCol.isVertical() ? newGridRowCol.getIndex() == bt[1] : newGridRowCol.getIndex() == bt[0])
-                    .map(bt -> newGridRowCol.isVertical() ? bt[0] : bt[1])
-                    .toList()
-            );
-
-            if (!gridRowsOrCols.isEmpty()) {
-                GridRowCol previousGridRowCol = gridRowsOrCols.getLast();
-                previousGridRowCol.setNextGridRowCol(newGridRowCol);
-                newGridRowCol.setPreviousGridRowCol(previousGridRowCol);
-            }
-
-            gridRowsOrCols.add(newGridRowCol);
+        if (!gridRowsOrCols.isEmpty()) {
+            GridRowCol previousGridRowCol = gridRowsOrCols.getLast();
+            previousGridRowCol.setNextGridRowCol(newGridRowCol);
+            newGridRowCol.setPreviousGridRowCol(previousGridRowCol);
         }
+
+        gridRowsOrCols.add(newGridRowCol);
     }
 
     public Grid toGrid() {
         return new Grid(this);
-    }
-
-    @Override
-    public String toString() {
-        return "GridDTO{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", grid=" + toJson(grid) +
-                ", playerLetters='" + String.join("", playerLetters) + '\'' +
-                ", gridType=" + gridType +
-                ", blankTiles=" + toJson(blankTiles) + '\'' +
-                ", language=" + language +
-                '}';
     }
 }

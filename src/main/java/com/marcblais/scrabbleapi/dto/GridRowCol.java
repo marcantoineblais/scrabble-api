@@ -12,6 +12,7 @@ import java.util.*;
 @AllArgsConstructor
 public class GridRowCol {
     private String[] content;
+    private String[] bonusContent;
     private int index;
     private boolean vertical;
 
@@ -26,7 +27,7 @@ public class GridRowCol {
     private List<Integer> blankTiles = new ArrayList<>();
 
 
-    public Map<Integer, List<List<String>>> testPatterns(List<String> playerLetters) {
+    public Map<Integer, List<List<String>>> testPatterns(String[] playerLetters) {
         Map<Integer, List<List<String>>> patternsMap = new HashMap<>();
         String[] previousLettersArray = previousGridRowCol == null ? null : previousGridRowCol.getContent();
         String[] nextLettersArray = nextGridRowCol == null ? null : nextGridRowCol.getContent();
@@ -35,12 +36,12 @@ public class GridRowCol {
             List<List<String>> patterns = new ArrayList<>();
             List<String> pattern = new ArrayList<>();
             boolean isValid = false;
-            int remainingLetters = playerLetters.size();
+            int remainingLetters = playerLetters.length;
             int startIndex = i;
 
             // Add every letters until reaching a blank space
-            if (content[i].matches("[A-Z]")) {
-                while (i < content.length && content[i].matches("[A-Z]")) {
+            if (!content[i].equals(".")) {
+                while (i < content.length && !content[i].equals(".")) {
                     pattern.add(content[i++]);
                 }
 
@@ -53,33 +54,33 @@ public class GridRowCol {
             while (remainingLetters > 0 && j < content.length) {
                 pattern.add(content[j]);
 
-                if (content[j].matches("[0-4.]")) {
+                if (content[j].equals(".")) {
                     remainingLetters -= 1;
 
-                    if (((previousLettersArray != null && !previousLettersArray[j].matches("[0-4.]")) ||
-                            (nextLettersArray != null && !nextLettersArray[j].matches("[0-4.]"))) &&
-                            ((j < content.length - 1 && content[j + 1].matches("[0-4.]")) ||
+                    if (((previousLettersArray != null && !previousLettersArray[j].equals(".")) ||
+                            (nextLettersArray != null && !nextLettersArray[j].equals("."))) &&
+                            ((j < content.length - 1 && content[j + 1].equals(".")) ||
                             j == content.length - 1))
                         isValid = true;
                 } else {
-                    while (j < content.length - 1 && !content[j + 1].matches("[0-4.]")) {
+                    while (j < content.length - 1 && !content[j + 1].equals(".")) {
                         pattern.add(content[++j]);
                     }
 
                     isValid = true;
                 }
 
-                if (isValid && ((j < content.length - 1 && content[j + 1].matches("[0-4.]")) ||
+                if (isValid && ((j < content.length - 1 && content[j + 1].equals(".")) ||
                                 j == content.length - 1))
                     patterns.add(List.copyOf(pattern));
 
                 j++;
             }
 
-            if (remainingLetters == 0 && j < content.length && !content[j].matches("[0-4.]")) {
+            if (remainingLetters == 0 && j < content.length && !content[j].equals(".")) {
                 pattern.add(content[j]);
 
-                while (j < content.length - 1 && !content[j + 1].matches("[0-4.]")) {
+                while (j < content.length - 1 && !content[j + 1].equals(".")) {
                     pattern.add(content[++j]);
                 }
                 
@@ -99,7 +100,7 @@ public class GridRowCol {
         int i = 0;
 
         while (i < content.length) {
-            if (!content[i].matches("[0-4.]")) {
+            if (!content[i].equals(".")) {
                 GridEntry entry = GridEntry.builder()
                         .y(vertical ? i : index)
                         .x(vertical ? index : i)
@@ -114,7 +115,7 @@ public class GridRowCol {
 
                 i++;
 
-                while (i < content.length && content[i].matches("[A-Z]")) {
+                while (i < content.length && !content[i].equals(".")) {
                     builder.append(content[i]);
 
                     if (blankTiles.contains(i))

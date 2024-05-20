@@ -23,6 +23,9 @@ public class Grid implements Comparable<Grid> {
     private long id;
 
     @Column(length = 30)
+    private String uuid;
+
+    @Column(length = 30)
     private String name;
 
     @Column(length = 1000)
@@ -49,6 +52,7 @@ public class Grid implements Comparable<Grid> {
 
     public Grid(GridDTO gridDTO) {
         this.id = gridDTO.getId();
+        this.uuid = gridDTO.getUuid();
         this.name = gridDTO.getName();
         this.grid = gridDTO.toJson(gridDTO.getGrid());
         this.playerLetters = gridDTO.toJson(gridDTO.getPlayerLetters());
@@ -69,10 +73,10 @@ public class Grid implements Comparable<Grid> {
         }
     }
 
-    public List<String> getPlayerLettersList() {
+    public String[] getPlayerLettersArray() {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.readValue(playerLetters, new TypeReference<>() {});
+            return mapper.readValue(playerLetters, String[].class);
         } catch (Exception ex) {
             return null;
         }
