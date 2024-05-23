@@ -53,7 +53,7 @@ public class GameController {
     }
 
     @PostMapping("/grid/{uuid}")
-    public ResponseEntity<Long> saveGame(
+    public ResponseEntity<String> saveGame(
             @CookieValue(value = "token", required = false) String token,
             @PathVariable(name = "uuid") String uuid,
             @RequestBody GridDTO gridDTO
@@ -72,11 +72,14 @@ public class GameController {
 
         grid.setGrid(newGrid.getGrid());
         grid.setPlayerLetters(newGrid.getPlayerLetters());
+        grid.setGridType(newGrid.getGridType());
+        grid.setLanguage(newGrid.getLanguage());
+        grid.setName(newGrid.getName().toUpperCase());
         grid.setBlankTiles(newGrid.getBlankTiles());
         grid.setLastUpdate(LocalDateTime.now());
 
         gameService.saveGrid(grid);
-        return new ResponseEntity<>(grid.getId(), HttpStatus.OK);
+        return new ResponseEntity<>(grid.getUuid(), HttpStatus.OK);
     }
 
     @DeleteMapping("/grid/{uuid}")
