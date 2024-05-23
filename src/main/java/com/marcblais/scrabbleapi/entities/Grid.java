@@ -22,7 +22,7 @@ public class Grid implements Comparable<Grid> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(length = 30)
+    @Column(length = 36, unique = true)
     private String uuid;
 
     @Column(length = 30)

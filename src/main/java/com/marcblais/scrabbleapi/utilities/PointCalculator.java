@@ -9,15 +9,18 @@ import java.util.*;
 
 public class PointCalculator {
     public static void calculatePointsForSolutions(Solution solution, LettersValue lettersValue, List<String> jokers) {
-        chooseBestPositionForJokers(solution, jokers);
+        String[] letters = solution.getEntry().getWord().split("");
+        String[] bonus = solution.getPattern().getBonus().split("");
+
+        chooseBestPositionForJokers(solution, jokers, bonus);
         solution.setPoints(calculateBasePoint(solution.getBlankTiles(), solution.getEntry().getWord(), lettersValue));
-        calculateAjdacentSolutionBasePoint(solution, lettersValue);
-        calculateBonus(solution, lettersValue);
+        calculateAjdacentSolutionBasePoint(solution, lettersValue, letters);
+        calculateBonus(solution, lettersValue, letters, bonus);
     }
 
-    private static void chooseBestPositionForJokers(Solution solution, List<String> jokers) {
+    private static void chooseBestPositionForJokers(Solution solution, List<String> jokers, String[] bonus) {
         String word = solution.getEntry().getWord();
-        String[] bonus = solution.getPattern();
+
 
         for (String joker : jokers) {
             List<Integer> availablePositions = new ArrayList<>();
@@ -76,25 +79,24 @@ public class PointCalculator {
         return points;
     }
 
-    private static void calculateAjdacentSolutionBasePoint(Solution solution, LettersValue lettersValue) {
-        for (Integer index : solution.getAdjacentSolutions().keySet()) {
-            AdjacentSolution adjacentSolution = solution.getAdjacentSolutions().get(index);
+    private static void calculateAjdacentSolutionBasePoint(Solution solution, LettersValue lettersValue, String[] letters) {
+        for (Map.Entry<Integer, AdjacentSolution> entry : solution.getAdjacentSolutions().entrySet()) {
+            AdjacentSolution adjacentSolution = entry.getValue();
+            Integer index = entry.getKey();
             adjacentSolution.setPoints(
                     calculateBasePoint(adjacentSolution.getBlankTiles(), adjacentSolution.getWord(), lettersValue)
             );
 
             if (solution.getBlankTiles().contains(index)) {
-                String letter = solution.getEntry().getWord().substring(index, index + 1);
+                String letter = letters[index];
                 int pointsToRemove = lettersValue.getPoints().getOrDefault(letter, 0);
                 adjacentSolution.setPoints(adjacentSolution.getPoints() - pointsToRemove);
             }
         }
     }
 
-    private static void calculateBonus(Solution solution, LettersValue lettersValue) {
+    private static void calculateBonus(Solution solution, LettersValue lettersValue, String[] letters, String[] bonus) {
         Map<String, Integer> pointMap = lettersValue.getPoints();
-        String[] letters = solution.getEntry().getWord().split("");
-        String[] bonus = solution.getPattern();
         int wordMultiplier = 1;
 
         for (int i = 0; i < letters.length; i++) {
@@ -141,9 +143,8 @@ public class PointCalculator {
             solution.setPoints(solution.getPoints() + adjacentSolution.getPoints());
         }
 
-        if (solution.getEntry().getWord().length()
-                - String.join("", solution.getPattern()).replaceAll("[0-4.]", "").length()
-                == 7) {
+        int patternLength = solution.getPattern().getRegex().replace(".", "").length();
+        if (letters.length - patternLength == 7) {
             solution.setPoints(solution.getPoints() + pointMap.get("*"));
         }
     }

@@ -134,8 +134,8 @@ public class GridDTO {
             String[] bonus = new String[15];
 
             for (int y = 0; y < grid.length; y++) {
-                content[x] = grid[y][x].isEmpty() ? "." : grid[y][x];
-                bonus[x] = gridWithBonusPatterns[y][x];
+                content[y] = grid[y][x].isEmpty() ? "." : grid[y][x];
+                bonus[y] = gridWithBonusPatterns[y][x];
             }
 
             buildColsAndRows(cols, x, content, bonus, true);
@@ -146,7 +146,9 @@ public class GridDTO {
         return gridRowsCols;
     }
 
-    private void buildColsAndRows(List<GridRowCol> gridRowsOrCols, int index, String[] content, String[] bonus, boolean vertical) {
+    private void buildColsAndRows(
+            List<GridRowCol> gridRowsOrCols, int index, String[] content, String[] bonus, boolean vertical
+    ) {
         GridRowCol newGridRowCol = GridRowCol.builder()
                 .content(content)
                 .bonusContent(bonus)

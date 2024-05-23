@@ -33,12 +33,12 @@ public class DictionnaryEntriesFinder {
         return true;
     }
 
-    public static Set<DictionaryEntry> findEntriesByPlayerLetters(List<String> playerLetters, Set<DictionaryEntry> entries) {
+    public static Set<DictionaryEntry> findEntriesByPlayerLetters(String[] playerLetters, Set<DictionaryEntry> entries) {
         Map<String, Integer> lettersCountMap =
                 LettersCounter.lettersCountMap(playerLetters);
 
         return entries.stream().filter(entry -> {
-            if (entry.getWord().length() > playerLetters.size())
+            if (entry.getWord().length() > playerLetters.length)
                 return false;
 
             return isWordMadeFromLetters(entry, lettersCountMap);
@@ -46,21 +46,19 @@ public class DictionnaryEntriesFinder {
     }
 
     public static Set<DictionaryEntry> findEntriesByPattern(
-            List<String> pattern, List<String> playerLetters, Set<DictionaryEntry> entries
+            String regex, Map<String, Integer> playerLettersMap, Set<DictionaryEntry> entries
     ) {
-        List<String> letters = new ArrayList<>(playerLetters);
-        letters.addAll(pattern);
-
-        Map<String, Integer> lettersCountMap = LettersCounter.lettersCountMap(letters);
+        Map<String, Integer> lettersMap = new HashMap<>(playerLettersMap);
+        lettersMap.putAll(LettersCounter.lettersCountMap(regex.replace(".", "").split("")));
 
         return entries.stream().filter(entry -> {
-            if (entry.getWord().length() != pattern.size())
+            if (entry.getWord().length() != regex.length())
                 return false;
 
-            if (!entry.getWord().matches("^" + String.join("", pattern) + "$"))
+            if (!entry.getWord().matches("^" + regex + "$"))
                 return false;
 
-            return isWordMadeFromLetters(entry, lettersCountMap);
+            return isWordMadeFromLetters(entry, lettersMap);
         }).collect(Collectors.toSet());
     }
 }

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class LoginService {
-    private PlayerRepo playerRepo;
+    private final PlayerRepo playerRepo;
     private final JavaMailSender mailSender;
 
     @Autowired
@@ -35,6 +35,10 @@ public class LoginService {
 
     public boolean isUsernameTaken(String username) {
         return playerRepo.existsById(username);
+    }
+
+    public boolean isEmailTaken(String email) {
+        return playerRepo.existsByEmail(email);
     }
 
     public void savePlayer(Player player) {

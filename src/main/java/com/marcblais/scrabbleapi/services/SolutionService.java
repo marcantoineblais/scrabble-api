@@ -47,30 +47,49 @@ public class SolutionService {
         // Creer la liste des lignes de contenu de la grille
         List<GridRowCol> gridRowsCols = grid.toGridRowColList();
 
+        // Creer la liste des entries qui sont deja sur la grid
+        List<GridEntry> gridEntries = createGridEntries(gridRowsCols);
+
         // Creer la liste des patterns pour chaque GridRowsCols
-        Map<GridRowCol, Map<Integer, List<List<String>>>> patternsByGridRowsCols = new HashMap<>();
-        if (gridRowsCols.isEmpty()) {
-            patternsByGridRowsCols = patternForFirstMove(grid);
+        Map<GridRowCol, Map<Integer, List<Pattern>>> patternsByGridRowsCols = new HashMap<>();
+        if (gridEntries.isEmpty()) {
+            Map<Integer, List<Pattern>> untestedPatterns =
+                    gridRowsCols.get(7).testPatterns(grid.getPlayerLetters(), true);
+            Map<Integer, List<Pattern>> validPatternsByIndex = new HashMap<>();
+
+            for (Map.Entry<Integer, List<Pattern>> entry : untestedPatterns.entrySet()) {
+                Integer index = entry.getKey();
+                List<Pattern> patterns = entry.getValue();
+                List<Pattern> validPatterns = new ArrayList<>();
+
+                for (Pattern pattern : patterns) {
+                    if (index <= 7 && index + pattern.getRegex().length() > 7) {
+                        validPatterns.add(pattern);
+                    }
+
+                    if (!validPatterns.isEmpty())
+                        validPatternsByIndex.put(index, validPatterns);
+                }
+            }
+
+            patternsByGridRowsCols.put(gridRowsCols.get(7), validPatternsByIndex);
         } else {
             for (GridRowCol gridRowCol : gridRowsCols) {
                 patternsByGridRowsCols.put(gridRowCol, gridRowCol.testPatterns(grid.getPlayerLetters()));
             }
         }
 
-        // Creer la liste des entries qui sont deja sur la grid
-        List<GridEntry> gridEntries = createGridEntries(gridRowsCols);
-
         // Recuperer tous les patterns uniques
-        Set<List<String>> uniquePatterns = findUniquePattern(patternsByGridRowsCols);
+        Set<Pattern> uniquePatterns = findUniquePattern(patternsByGridRowsCols);
 
         // Pour chaque pattern unique, trouver les mots qui sont possibles
         // Creer un nouveau thread pour chaque pattern
-        Map<List<String>, Set<DictionaryEntry>> entriesByPattern =
+        Map<Pattern, Set<DictionaryEntry>> entriesByPattern =
                 findWordForEachUniquePattern(grid, uniquePatterns, entries);
 
         // Assign every list of entries to their matching patterns by grid content
         // Create threads for every gridRowCol
-        Map<GridRowCol, Map<Integer, Set<DictionaryEntry>>> entriesByGridRowsCols =
+        Map<GridRowCol, Map<Integer, Map<Pattern, Set<DictionaryEntry>>>> entriesByGridRowsCols =
                 setEntriesListByMatchingPatterns(patternsByGridRowsCols, entriesByPattern);
 
         // For every entries in the grid contents, create a solution object and fill their adjacent solution list
@@ -112,79 +131,30 @@ public class SolutionService {
         return gridEntries;
     }
 
-    private Map<GridRowCol, Map<Integer, List<List<String>>>> patternForFirstMove(GridDTO grid) {
-        Map<GridRowCol, Map<Integer, List<List<String>>>> patternsByGridRowsCols = new HashMap<>();
-        Map<Integer, List<List<String>>> patternsByIndex = new HashMap<>();
-        int gridMiddle = grid.getGrid().length / 2;
-        List<String> content = new ArrayList<>();
+    private Set<Pattern> findUniquePattern(Map<GridRowCol, Map<Integer, List<Pattern>>> patternsByGridRowsCols) {
+        Set<Pattern> uniquePatterns = new HashSet<>();
 
-        for (int i = 0; i < grid.getGrid().length; i++) {
-            content.add(grid.bonusOrLetter(gridMiddle, i));
-        }
-
-        GridRowCol gridRowCol = GridRowCol.builder()
-                .content(content.toArray(String[]::new))
-                .index(gridMiddle)
-                .vertical(false)
-                .build();
-
-        List<String> playerLetters = grid.getPlayerLetters();
-
-        for (int i = gridMiddle - playerLetters.size() + 1; i < playerLetters.size(); i++) {
-            List<List<String>> patterns = new ArrayList<>();
-            List<String> pattern = new ArrayList<>();
-            int j = i;
-
-            while (j < grid.getGrid().length && j < playerLetters.size() + i) {
-                pattern.add(grid.bonusOrLetter(gridMiddle, j));
-
-                if (j >= gridMiddle)
-                    patterns.add(List.copyOf(pattern));
-
-                j++;
-            }
-
-            patternsByIndex.put(i, patterns);
-        }
-
-        patternsByGridRowsCols.put(gridRowCol, patternsByIndex);
-        return patternsByGridRowsCols;
-    }
-
-    private Set<List<String>> findUniquePattern(Map<GridRowCol, Map<Integer, List<List<String>>>> patternsByGridRowsCols) {
-        Set<List<String>> uniquePatterns = new HashSet<>();
-        for (Map<Integer, List<List<String>>> map : patternsByGridRowsCols.values()) {
-            for (List<List<String>> patternsByIndex : map.values()) {
-                Set<List<String>> patternsWithoutBonus = new HashSet<>();
-
-                for (List<String> pattern : patternsByIndex) {
-                    List<String> patternWithoutBonus = new ArrayList<>();
-
-                    for (String letter : pattern) {
-                        patternWithoutBonus.add(letter.replaceAll("[0-4]", "."));
-                    }
-
-                    patternsWithoutBonus.add(patternWithoutBonus);
-                }
-
-                uniquePatterns.addAll(patternsWithoutBonus);
+        for (Map<Integer, List<Pattern>> map : patternsByGridRowsCols.values()) {
+            for (List<Pattern> patternsByIndex : map.values()) {
+                uniquePatterns.addAll(patternsByIndex);
             }
         }
 
         return uniquePatterns;
     }
 
-    private Map<List<String>, Set<DictionaryEntry>> findWordForEachUniquePattern(
-            GridDTO grid, Set<List<String>> uniquePatterns, Set<DictionaryEntry> entries
+    private Map<Pattern, Set<DictionaryEntry>> findWordForEachUniquePattern(
+            GridDTO grid, Set<Pattern> uniquePatterns, Set<DictionaryEntry> entries
     ) {
-        Map<List<String>, Set<DictionaryEntry>> entriesByPattern = new HashMap<>();
+        Map<Pattern, Set<DictionaryEntry>> entriesByPattern = new HashMap<>();
+        Map<String, Integer> playerLettersMap = LettersCounter.lettersCountMap(grid.getPlayerLetters());
         Queue<Thread> entriesByPatternThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForEntriesByPattern = new ThreadGroup("entryByPattern");
 
-        for (List<String> pattern : uniquePatterns) {
+        for (Pattern pattern : uniquePatterns) {
             Thread thread = new Thread(threadGroupForEntriesByPattern, () -> {
                 Set<DictionaryEntry> entriesForPattern = DictionnaryEntriesFinder.findEntriesByPattern(
-                        pattern, grid.getPlayerLetters(), entries
+                        pattern.getRegex(), playerLettersMap, entries
                 );
 
                 synchronized (entriesByPattern) {
@@ -202,31 +172,30 @@ public class SolutionService {
         return entriesByPattern;
     }
 
-    private Map<GridRowCol, Map<Integer, Set<DictionaryEntry>>> setEntriesListByMatchingPatterns(
-            Map<GridRowCol, Map<Integer, List<List<String>>>> patternsByGridRowsCols,
-            Map<List<String>, Set<DictionaryEntry>> entriesByPattern
+    private Map<GridRowCol, Map<Integer, Map<Pattern, Set<DictionaryEntry>>>> setEntriesListByMatchingPatterns(
+            Map<GridRowCol, Map<Integer, List<Pattern>>> patternsByGridRowsCols,
+            Map<Pattern, Set<DictionaryEntry>> entriesByPattern
     ) {
-        Map<GridRowCol, Map<Integer, Set<DictionaryEntry>>> entriesByGridRowsCols = new HashMap<>();
+        Map<GridRowCol, Map<Integer, Map<Pattern, Set<DictionaryEntry>>>> entriesByGridRowsCols = new HashMap<>();
         Queue<Thread> patternByGridContentThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForPatternByGridContent = new ThreadGroup("patternByGridContent");
-        for (GridRowCol gridRowCol : patternsByGridRowsCols.keySet()) {
+
+        for (Map.Entry<GridRowCol, Map<Integer, List<Pattern>>> entry : patternsByGridRowsCols.entrySet()) {
             Thread thread = new Thread(threadGroupForPatternByGridContent, () -> {
-                Map<Integer, Set<DictionaryEntry>> entriesByIndex = new HashMap<>();
-                Map<Integer, List<List<String>>> map = patternsByGridRowsCols.get(gridRowCol);
+                GridRowCol gridRowCol = entry.getKey();
+                Map<Integer, List<Pattern>> patternsMap = entry.getValue();
+                Map<Integer, Map<Pattern, Set<DictionaryEntry>>> entriesByIndex = new HashMap<>();
 
-                for (Integer index : map.keySet()) {
-                    Set<DictionaryEntry> entriesList = new HashSet<>();
+                for (Map.Entry<Integer, List<Pattern>> patternsEntry : patternsMap.entrySet()) {
+                    Integer index = patternsEntry.getKey();
+                    List<Pattern> patterns = patternsEntry.getValue();
+                    Map<Pattern, Set<DictionaryEntry>> entriesMap = new HashMap<>();
 
-                    for (List<String> pattern : map.get(index)) {
-                        List<String> patternWithoutBonus = new ArrayList<>();
-                        for (String letter : pattern) {
-                            patternWithoutBonus.add(letter.replaceAll("[0-4]", "."));
-                        }
-
-                        entriesList.addAll(entriesByPattern.get(patternWithoutBonus));
+                    for (Pattern pattern : patterns) {
+                        entriesMap.put(pattern, entriesByPattern.get(pattern));
                     }
 
-                    entriesByIndex.put(index, entriesList);
+                    entriesByIndex.put(index, entriesMap);
                 }
 
                 synchronized (entriesByGridRowsCols) {
@@ -245,70 +214,77 @@ public class SolutionService {
     }
 
     private Set<Solution> findUnfilteredSolutions(
-            Map<GridRowCol, Map<Integer, Set<DictionaryEntry>>> entriesByGridRowsCols,
+            Map<GridRowCol, Map<Integer, Map<Pattern, Set<DictionaryEntry>>>> entriesByGridRowsCols,
             List<GridEntry> gridEntries
     ) {
         Set<Solution> unfilteredSolutions = new HashSet<>();
         Queue<Thread> solutionsBuildingThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForSolutionsBuilding = new ThreadGroup("solutionsBuilding");
-        for (GridRowCol gridRowCol : entriesByGridRowsCols.keySet()) {
-            Map<Integer, Set<DictionaryEntry>> map = entriesByGridRowsCols.get(gridRowCol);
+        for (Map.Entry<GridRowCol, Map<Integer, Map<Pattern, Set<DictionaryEntry>>>> mapEntry : entriesByGridRowsCols.entrySet()) {
+            GridRowCol gridRowCol = mapEntry.getKey();
+            Map<Integer, Map<Pattern, Set<DictionaryEntry>>> map = mapEntry.getValue();
 
-            for (Integer index : map.keySet()) {
+            for (Map.Entry<Integer, Map<Pattern, Set<DictionaryEntry>>> entriesEntry : map.entrySet()) {
+                Integer index = entriesEntry.getKey();
+                Map<Pattern, Set<DictionaryEntry>> entriesMap = entriesEntry.getValue();
                 int y = gridRowCol.isVertical() ? index : gridRowCol.getIndex();
                 int x = gridRowCol.isVertical() ? gridRowCol.getIndex() : index;
 
-                for (DictionaryEntry entry : map.get(index)) {
-                    Thread thread = new Thread(threadGroupForSolutionsBuilding, () -> {
-                        Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
+                for (Map.Entry<Pattern, Set<DictionaryEntry>> entry : entriesMap.entrySet()) {
+                    Pattern pattern = entry.getKey();
+                    Set<DictionaryEntry> entries = entry.getValue();
 
-                        for (int i = 0; i < entry.getWord().length(); i++) {
-                            int offSetY = gridRowCol.isVertical() ? i : 0;
-                            int offSetX = gridRowCol.isVertical() ? 0 : i;
+                    for (DictionaryEntry dictionaryEntry : entries) {
+                        Thread thread = new Thread(threadGroupForSolutionsBuilding, () -> {
+                            Map<Integer, AdjacentSolution> adjacentSolutions = new HashMap<>();
 
-                            GridEntry beforeEntry = gridEntries.stream()
-                                    .filter(e -> e.isBefore(y + offSetY, x + offSetX, gridRowCol.isVertical()))
-                                    .findFirst()
-                                    .orElse(null);
+                            for (int i = 0; i < dictionaryEntry.getWord().length(); i++) {
+                                int offSetY = gridRowCol.isVertical() ? i : 0;
+                                int offSetX = gridRowCol.isVertical() ? 0 : i;
 
-                            GridEntry afterEntry = gridEntries.stream()
-                                    .filter(e -> e.isAfter(y + offSetY, x + offSetX, gridRowCol.isVertical()))
-                                    .findFirst()
-                                    .orElse(null);
+                                GridEntry beforeEntry = gridEntries.stream()
+                                        .filter(e -> e.isBefore(y + offSetY, x + offSetX, gridRowCol.isVertical()))
+                                        .findFirst()
+                                        .orElse(null);
 
-                            String beforeString = beforeEntry == null ? "" : beforeEntry.getEntry();
-                            String afterString = afterEntry == null ? "" : afterEntry.getEntry();
+                                GridEntry afterEntry = gridEntries.stream()
+                                        .filter(e -> e.isAfter(y + offSetY, x + offSetX, gridRowCol.isVertical()))
+                                        .findFirst()
+                                        .orElse(null);
 
-                            String adjacentWord = beforeString + entry.getWord().charAt(i) + afterString;
+                                String beforeString = beforeEntry == null ? "" : beforeEntry.getEntry();
+                                String afterString = afterEntry == null ? "" : afterEntry.getEntry();
+                                String adjacentWord = beforeString + dictionaryEntry.getWord().charAt(i) + afterString;
 
-                            if (adjacentWord.length() > 1) {
-                                AdjacentSolution adjacentSolution = new AdjacentSolution(adjacentWord, 0, new ArrayList<>());
-                                adjacentSolution.assignBlankTiles(beforeEntry, afterEntry);
-                                adjacentSolutions.put(i, adjacentSolution);
+                                if (adjacentWord.length() > 1) {
+                                    AdjacentSolution adjacentSolution = AdjacentSolution.builder()
+                                            .word(adjacentWord)
+                                            .build();
+
+                                    adjacentSolution.assignBlankTiles(beforeEntry, afterEntry);
+                                    adjacentSolutions.put(i, adjacentSolution);
+                                }
                             }
-                        }
 
-                        String[] pattern = new String[entry.getWord().length()];
-                        System.arraycopy(gridRowCol.getContent(), index, pattern, 0, pattern.length);
+                            Solution solution = Solution.builder()
+                                    .entry(dictionaryEntry)
+                                    .gridRowCol(gridRowCol)
+                                    .adjacentSolutions(adjacentSolutions)
+                                    .pattern(pattern)
+                                    .vertical(gridRowCol.isVertical())
+                                    .y(y)
+                                    .x(x)
+                                    .build();
 
-                        Solution solution = Solution.builder()
-                                .entry(entry)
-                                .gridRowCol(gridRowCol)
-                                .adjacentSolutions(adjacentSolutions)
-                                .pattern(pattern)
-                                .vertical(gridRowCol.isVertical())
-                                .y(y)
-                                .x(x)
-                                .build();
+                            solution.assignBlankTiles();
 
-                        solution.assignBlankTiles();
+                            synchronized (unfilteredSolutions) {
+                                unfilteredSolutions.add(solution);
+                            }
+                        });
 
-                        synchronized (unfilteredSolutions) {
-                            unfilteredSolutions.add(solution);
-                        }
-                    });
-
-                    solutionsBuildingThreads.add(thread);
+                        solutionsBuildingThreads.add(thread);
+                    }
                 }
             }
         }
@@ -323,6 +299,7 @@ public class SolutionService {
         Set<String> allAdjacentWords = new HashSet<>();
         Queue<Thread> solutionFilteringThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForSolutionFiltering = new ThreadGroup("solutionFiltering");
+
         for (Solution solution : unfilteredSolutions) {
             Thread thread = new Thread(threadGroupForSolutionFiltering, () -> {
                 for (AdjacentSolution adjacentSolution : solution.getAdjacentSolutions().values()) {
@@ -349,10 +326,11 @@ public class SolutionService {
 
         for (String word : allAdjacentSolutionsWords) {
             Thread thread = new Thread(threadGroupForTestingAdjacentSolutions , () -> {
-                if (entries.stream().anyMatch(e -> e.getWord().equals(word)))
+                if (entries.stream().anyMatch(e -> e.getWord().equals(word))) {
                     synchronized (validAdjacentWords) {
                         validAdjacentWords.add(word);
                     }
+                }
             });
 
             adjacentSolutionsTestingThreads.add(thread);
@@ -368,20 +346,22 @@ public class SolutionService {
     private void calculatesPointsForSolutions(Set<Solution> validSolutions, GridDTO grid, LettersValue lettersValue) {
         Queue<Thread> pointsCalculationThreads = new ArrayDeque<>();
         ThreadGroup threadGroupForPointsCalculation = new ThreadGroup("pointsCalculation");
-        List<String> playerLetters = grid.getPlayerLetters();
-        Map<String, Integer> lettersMap = LettersCounter.lettersCountMap(playerLetters);
+        Map<String, Integer> lettersMap = LettersCounter.lettersCountMap(grid.getPlayerLetters());
+        boolean isJokersPresent = lettersMap.containsKey("#");
 
         for (Solution solution : validSolutions) {
             Thread thread = new Thread(threadGroupForPointsCalculation, () -> {
                 List<String> jokers = new ArrayList<>();
 
-                if (lettersMap.containsKey("#")) {
+                if (isJokersPresent) {
                     Map<String, Integer> wordMap = solution.getEntry().getLetters();
 
-                    for (String letter : wordMap.keySet()) {
-                        String joker = letter.repeat(wordMap.get(letter) - lettersMap.getOrDefault(letter, 0));
-                        if (!joker.isEmpty()) {
-                            jokers.addAll(List.of(joker.split("")));
+                    for (Map.Entry<String, Integer> entry : wordMap.entrySet()) {
+                        String letter = entry.getKey();
+                        int repeatCount = entry.getValue() - lettersMap.getOrDefault(letter, 0);
+
+                        for (int i = 0; i < repeatCount; i++) {
+                            jokers.add(letter);
                         }
                     }
                 }

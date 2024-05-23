@@ -18,9 +18,13 @@ public class Player {
     @Column(length = 50, unique = true)
     private String username;
 
-    @Column(length = 77, nullable = false)
+    @Column(length = 76, nullable = false)
     @JsonIgnore
     private String password;
+
+    @Column(length = 50, unique = true, nullable = false)
+    @JsonIgnore
+    private String email;
 
     @OneToMany
     @JoinColumn(referencedColumnName = "username", name = "player_username")
@@ -34,9 +38,8 @@ public class Player {
 
     private boolean enabled;
 
-
-    public Grid findGrid(long id) {
-        return grids.stream().filter(g -> g.getId() == id).findFirst().orElse(null);
+    public Grid findGrid(String uuid) {
+        return grids.stream().filter(g -> g.getUuid().equals(uuid)).findFirst().orElse(null);
     }
 
     @Override

@@ -30,7 +30,7 @@ public class DictionaryEntry {
 
 
     public Map<String, Integer> getLetters() {
-        return LettersCounter.lettersCountMap(List.of(word.split("")));
+        return LettersCounter.lettersCountMap(word.split(""));
     }
 
     @Override

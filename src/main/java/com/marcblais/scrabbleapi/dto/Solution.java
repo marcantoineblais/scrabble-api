@@ -13,6 +13,10 @@ import java.util.*;
 @AllArgsConstructor
 public class Solution implements Comparable<Solution> {
     private DictionaryEntry entry;
+    private boolean vertical;
+    private int x;
+    private int y;
+    private int points;
 
     @JsonIgnore
     private GridRowCol gridRowCol;
@@ -21,12 +25,7 @@ public class Solution implements Comparable<Solution> {
     private Map<Integer, AdjacentSolution> adjacentSolutions;
 
     @JsonIgnore
-    private String[] pattern;
-
-    private boolean vertical;
-    private int x;
-    private int y;
-    private int points;
+    Pattern pattern;
 
     @Builder.Default
     private List<Integer> blankTiles = new ArrayList<>();
@@ -84,7 +83,7 @@ public class Solution implements Comparable<Solution> {
                 "entry=" + entry +
                 ", gridRowsCols=" + gridRowCol +
                 ", adjacentSolutions=" + adjacentSolutions +
-                ", pattern='" + Arrays.toString(pattern) +
+                ", pattern='" + pattern +
                 ", vertical=" + vertical +
                 ", x=" + x +
                 ", y=" + y +

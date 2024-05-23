@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.UUID;
 
 @RestController
 public class GameController {
@@ -23,7 +23,7 @@ public class GameController {
     }
 
     @PostMapping("/grid/new")
-    public ResponseEntity<Long> createGrid(
+    public ResponseEntity<String> createGrid(
             @CookieValue(value = "token", required = false) String token,
             @RequestBody GameOption gameOption
     ) {
@@ -45,16 +45,17 @@ public class GameController {
 
         Grid grid;
         grid = gridDTO.toGrid();
+        grid.setUuid(UUID.randomUUID().toString());
         grid.setLastUpdate(LocalDateTime.now());
 
         gameService.saveGrid(grid);
-        return new ResponseEntity<>(grid.getId(), HttpStatus.OK);
+        return new ResponseEntity<>(grid.getUuid(), HttpStatus.OK);
     }
 
-    @PostMapping("/grid/{id}")
+    @PostMapping("/grid/{uuid}")
     public ResponseEntity<Long> saveGame(
             @CookieValue(value = "token", required = false) String token,
-            @PathVariable(name = "id") Long id,
+            @PathVariable(name = "uuid") String uuid,
             @RequestBody GridDTO gridDTO
     ) {
         Player player = findPlayer(token);
@@ -64,7 +65,7 @@ public class GameController {
         if (player == null)
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
-        grid = player.findGrid(id);
+        grid = player.findGrid(uuid);
         if (grid == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
@@ -78,10 +79,10 @@ public class GameController {
         return new ResponseEntity<>(grid.getId(), HttpStatus.OK);
     }
 
-    @DeleteMapping("/grid/{id}")
+    @DeleteMapping("/grid/{uuid}")
     public ResponseEntity<Void> deleteGame(
             @CookieValue(value = "token", required = false) String token,
-            @PathVariable(name = "id") long id
+            @PathVariable(name = "uuid") String uuid
     ) {
         if (token == null)
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -92,7 +93,7 @@ public class GameController {
         if (player == null)
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
-        grid = player.findGrid(id);
+        grid = player.findGrid(uuid);
         if (grid == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
@@ -102,16 +103,16 @@ public class GameController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/grid/{id}")
+    @GetMapping("/grid/{uuid}")
     public ResponseEntity<GridDTO> getGame(
             @CookieValue(name = "token") String token,
-            @PathVariable(name = "id") Long id
+            @PathVariable(name = "uuid") String uuid
     ) {
         Player player = findPlayer(token);
         if (player == null)
             return new ResponseEntity<>(HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);
 
-        Grid grid = player.findGrid(id);
+        Grid grid = player.findGrid(uuid);
         if (grid == null)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 

@@ -31,13 +31,13 @@ public class PasswordEncoder {
             hashedPasswordBuilder.append(String.format("%02x", b));
         }
 
-        return saltBuilder + ":" + hashedPasswordBuilder;
+        return saltBuilder.toString() + hashedPasswordBuilder;
     }
 
     public static boolean isEqual(String raw, String other) {
         MessageDigest messageDigest;
-        byte[] otherSalt = PasswordEncoder.hexStringToByteArray(other.split(":")[0]);
-        byte[] otherHashed = PasswordEncoder.hexStringToByteArray(other.split(":")[1]);
+        byte[] otherSalt = PasswordEncoder.hexStringToByteArray(other.substring(0, 32));
+        byte[] otherHashed = PasswordEncoder.hexStringToByteArray(other.substring(32));
         byte[] hashedPassword;
 
         try {

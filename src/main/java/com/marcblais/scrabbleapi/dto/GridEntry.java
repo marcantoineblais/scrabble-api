@@ -15,9 +15,7 @@ public class GridEntry {
     private int y;
     private int x;
     private boolean vertical;
-
-    @Builder.Default
-    private List<Integer> blankTiles = new ArrayList<>();
+    private List<Integer> blankTiles;
 
 
     public int getLastX() {
@@ -31,10 +29,10 @@ public class GridEntry {
     public boolean isBefore(int y, int x, boolean vertical) {
         if (this.vertical == vertical)
             return false;
-        else if (this.vertical)
-            return this.x == x && this.getLastY() == y - 1;
-        else
+        else if (vertical)
             return this.y == y && this.getLastX() == x - 1;
+        else
+            return this.x == x && this.getLastY() == y - 1;
     }
 
     public boolean isAfter(int y, int x, boolean vertical) {
@@ -44,15 +42,6 @@ public class GridEntry {
             return this.x == x && this.getY() == y + 1;
         else
             return this.y == y && this.getX() == x + 1;
-    }
-
-    public void assignBlankTiles(GridRowCol gridRowCol) {
-        for (Integer i : gridRowCol.getBlankTiles()) {
-            if (vertical && i >= y && i <= getLastY())
-                blankTiles.add(i - y);
-            else if (!vertical && i >= x && i <= getLastX())
-                blankTiles.add(i - x);
-        }
     }
 
     @Override

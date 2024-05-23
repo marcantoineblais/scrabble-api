@@ -85,12 +85,18 @@ public class LoginController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<Void> signIn(@RequestBody SignInRequest request) {
+    public ResponseEntity<String> signIn(@RequestBody SignInRequest request) {
         if (loginService.isUsernameTaken(request.getUsername()))
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return new ResponseEntity<>("username", HttpStatus.CONFLICT);
 
-        Player player = Player.builder().username(request.getUsername()).build();
-        player.setPassword(PasswordEncoder.encode(request.getPassword()));
+        if (loginService.isEmailTaken(request.getEmail()))
+            return new ResponseEntity<>("email", HttpStatus.CONFLICT);
+
+        Player player = Player.builder()
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .password(PasswordEncoder.encode(request.getPassword()))
+                .build();
         player.setRoles(List.of(Role.builder().player(player).name("PLAYER").build()));
 
         String token = EmailToken.createJwtForEmail(request.getUsername(), request.getEmail());
